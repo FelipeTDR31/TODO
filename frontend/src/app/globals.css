@@ -2,32 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+:root{
+  --bg-primary: #21222D;
+  --bg-secondary: #2C2C37;
+  --btn-color: #645FC7;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+
+.bg-primary {
+  background-color: var(--bg-primary);
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.bg-button {
+  background-color: var(--btn-color);
+  color: white;
+}
+
+.bg-button:hover {
+  color: var(--btn-color);
+  background: white;
+}
+
+.input-border{
+  border: rgb(156 163 175) 1px solid;
+  background: var(--bg-secondary);
+}
+
+.create-board{
+  color: #4640c2;
+}
+
+.kanban-template{
+  display: grid;
+  grid-template-areas: 
+  "aside cDiv cDiv cDiv cDiv cDiv"
+  "aside main main main main main"
+  "aside main main main main main"
+  ;
+}
+
+.aside-content{
+  grid-area: aside;
+}
+
+.main-content{
+  grid-area: main;
+}
+
+.cDiv{
+  grid-area: cDiv;
+}
+
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
 }
