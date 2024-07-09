@@ -9,18 +9,28 @@
 }
 
 :root{
-  --bg-primary: #21222D;
-  --bg-secondary: #2C2C37;
+  --bg-primary-dark: #21222D;
+  --bg-secondary-dark: #2C2C37;
   --btn-color: #645FC7;
+  --bg-primary-light: #ffffff;
+  --bg-secondary-light: #ffffff;
 }
 
 
-.bg-primary {
-  background-color: var(--bg-primary);
+.bg-primary-dark {
+  background-color: var(--bg-primary-dark);
 }
 
-.bg-secondary {
-  background-color: var(--bg-secondary);
+.bg-secondary-dark {
+  background-color: var(--bg-secondary-dark);
+}
+
+.bg-primary-light {
+  background-color: var(--bg-primary-light);
+}
+
+.bg-secondary-light {
+  background-color: var(--bg-secondary-light);
 }
 
 .bg-button {
@@ -89,3 +99,5 @@
 .dropdown:hover .dropdown-content {
   display: block;
 }
+
+
