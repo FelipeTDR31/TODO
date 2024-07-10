@@ -6,11 +6,14 @@ import SunImg from "@/utils/images/sun.png";
 import MoonImg from "@/utils/images/moon.png";
 import HideImg from "@/utils/images/hide.png";
 import React, { useEffect, useState } from "react";
+import Column from "@/components/Column";
+import { Input } from "@/utils/Tags/Input";
 
 export default function UserPage({ params }: { params: { user: string } }) {
     const [mode, setMode] = useState<"light" | "dark">(
         typeof window !== "undefined" ? localStorage.getItem("theme") as ("light" | "dark") : "dark"
     );
+    const [showAddNewTask, setShowAddNewTask] = useState(false);
 
     const toggleMode = (e : any) => {
         const newMode = mode === "light" ? "dark" : "light";
@@ -94,7 +97,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
             <div className={`cDiv font-bold flex items-center justify-between p-5 border-b border-l border-gray-500 w-[78vw] h-[15vh] ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <h1 className={`text-xl ${mode === "dark" ? "text-white" : "text-black"}`}>Platform Launch</h1>
                 <div className="flex gap-3 items-center">
-                    <button className="bg-button font-bold text-base p-3 px-4 rounded-3xl">+ Add New Task</button>
+                    <button className="bg-button font-bold text-base p-3 px-4 rounded-3xl" onClick={() => setShowAddNewTask(!showAddNewTask)}>+ Add New Task</button>
                     <div className="dropdown">
                         <button className="text-gray-600 text-2xl">&#8942;</button>
                         <div className="dropdown-content">
@@ -106,9 +109,52 @@ export default function UserPage({ params }: { params: { user: string } }) {
                 </div>
             </div>
 
-            <div className="main-content h-[80vh] pl-5 pt-5">
-                <button className={`h-full w-[20vw] font-bold ${mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
+            <div className="main-content h-[80vh] pl-4 pt-4 flex gap-6">
+                <Column mode={mode} />
+                <button className={`h-full w-[22vw] font-bold ${mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
             </div>
+
+          {
+            showAddNewTask ? 
+            <div className={`flex flex-col p-5 gap-4 absolute top-[5vh] left-[35vw] w-[30vw] h-[90vh] z-10 rounded-md ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+              <h1 className={`font-semibold text-xl ${mode === "dark" ? "text-white" : "text-black"}`}>New Task</h1>
+              <form className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="title" className={`font-semibold text-sm ${mode === "dark" ? "text-white" : "text-black"}`}>Title</label>
+                  <Input placeholder="e.g: Take a coffee" type="text" id="title" name="title" className="w-full font-semibold" />  
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="description" className={`font-semibold text-sm ${mode === "dark" ? "text-white" : "text-black"}`}>Description</label>
+                  <textarea placeholder="e.g: Always good to take a break" name="description" id="description" rows={4} className="resize-none text-gray-400 text-sm p-2 rounded w-full input-border"></textarea>
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <label className={`font-semibold text-sm ${mode === "dark" ? "text-white" : "text-black"}`}>Subtasks</label>
+                  <div className="flex gap-4">
+                    <Input type="text" className="subtasks font-semibold text-sm w-full" name="subtasks" />
+                    <button className="text-gray-400 font-bold">X</button>
+                  </div>
+                  <button className="bg-button font-bold text-base p-2 rounded-3xl w-full">+ Add New Subtask</button>
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="status" className={`font-semibold text-sm ${mode === "dark" ? "text-white" : "text-black"}`}>Status</label>
+                  <select name="status" id="status" className="w-full font-semibold input-border rounded p-1 text-gray-400">
+                    <option value="todo" className={`text-gray-400 font-semibold p-1 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>To Do</option>
+                    <option value="inprogress" className={`text-gray-400 font-semibold p-1 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>In Progress</option>
+                    <option value="done" className={`text-gray-400 font-semibold p-1 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>Done</option>
+                  </select>
+                </div>
+                <button className="bg-button font-bold text-base p-2 rounded-3xl w-full">Create Task</button>
+              </form>
+            </div>
+            : null
+          }
+
+          {
+            showAddNewTask ?  <span className="absolute top-0 left-0 w-screen h-screen bg-black opacity-50" onClick={() => setShowAddNewTask(false)}></span> : null
+          }
         </main>
     );
 }
