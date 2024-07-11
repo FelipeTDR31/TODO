@@ -101,3 +101,10 @@
 }
 
 
+input[type=checkbox]:checked {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  content: url("https://api.iconify.design/akar-icons:check.svg?color=white");
+  text-align: center;
+}
