@@ -20,13 +20,13 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            return await _context.User.ToListAsync();
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        [HttpGet("{name}")]
+        public async Task<ActionResult<User>> GetUser(string name)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.User.FirstAsync(u => u.Name == name);
 
             if (user == null)
             {
@@ -39,7 +39,12 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> CreateUser(User user)
         {
-            _context.Users.Add(user);
+            if (_context.User.Any(u => u.Name == user.Name))
+            {
+                return Conflict();
+            }
+
+            _context.User.Add(user);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
@@ -77,21 +82,36 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.User.FindAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
 
-            _context.Users.Remove(user);
+            _context.User.Remove(user);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
+        
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(User user)
+        {
+            var foundUser = await _context.User.FirstAsync(u => u.Email == user.Email && u.Password == user.Password);
+            if (foundUser == null)
+            {
+                return BadRequest("Invalid username or password");
+            }
+            var tokenGenerator = new TokenGenerator();
+            var token = tokenGenerator.GenerateToken(foundUser);
+
+            return Ok(new { token, foundUser });
+        }
+
         private bool UserExists(int id)
         {
-            return _context.Users.Any(e => e.Id == id);
+            return _context.User.Any(e => e.Id == id);
         }
     }
 }

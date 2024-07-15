@@ -5,6 +5,7 @@ namespace backend.Models
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public int Position { get; set; }
         public int TableId { get; set; }
         public required Table Table { get; set; }
         public ICollection<Task>? Tasks { get; set; }

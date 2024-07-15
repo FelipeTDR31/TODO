@@ -19,13 +19,13 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Table>>> GetTables()
         {
-            return await _context.Tables.ToListAsync();
+            return await _context.Table.ToListAsync();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Table>> GetTable(int id)
         {
-            var table = await _context.Tables.FindAsync(id);
+            var table = await _context.Table.FindAsync(id);
 
             if (table == null)
             {
@@ -38,7 +38,7 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Table>> CreateTable(Table table)
         {
-            _context.Tables.Add(table);
+            _context.Table.Add(table);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetTable), new { id = table.Id }, table);
@@ -76,13 +76,13 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTable(int id)
         {
-            var table = await _context.Tables.FindAsync(id);
+            var table = await _context.Table.FindAsync(id);
             if (table == null)
             {
                 return NotFound();
             }
 
-            _context.Tables.Remove(table);
+            _context.Table.Remove(table);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -90,7 +90,7 @@ namespace backend.Controllers
 
         private bool TableExists(int id)
         {
-            return _context.Tables.Any(e => e.Id == id);
+            return _context.Table.Any(e => e.Id == id);
         }
     }
 }

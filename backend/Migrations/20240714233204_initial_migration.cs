@@ -15,7 +15,7 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "User",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -29,12 +29,12 @@ namespace backend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_User", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Tables",
+                name: "Table",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -45,40 +45,41 @@ namespace backend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tables", x => x.Id);
+                    table.PrimaryKey("PK_Table", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Tables_Users_UserId",
+                        name: "FK_Table_User_UserId",
                         column: x => x.UserId,
-                        principalTable: "Users",
+                        principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Columns",
+                name: "Column",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Name = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    Position = table.Column<int>(type: "int", nullable: false),
                     TableId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Columns", x => x.Id);
+                    table.PrimaryKey("PK_Column", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Columns_Tables_TableId",
+                        name: "FK_Column_Table_TableId",
                         column: x => x.TableId,
-                        principalTable: "Tables",
+                        principalTable: "Table",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Tasks",
+                name: "Task",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -87,60 +88,62 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    Order = table.Column<int>(type: "int", nullable: false),
                     ColumnId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tasks", x => x.Id);
+                    table.PrimaryKey("PK_Task", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Tasks_Columns_ColumnId",
+                        name: "FK_Task_Column_ColumnId",
                         column: x => x.ColumnId,
-                        principalTable: "Columns",
+                        principalTable: "Column",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Substasks",
+                name: "Subtask",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsDone = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     TaskId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Substasks", x => x.Id);
+                    table.PrimaryKey("PK_Subtask", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Substasks_Tasks_TaskId",
+                        name: "FK_Subtask_Task_TaskId",
                         column: x => x.TaskId,
-                        principalTable: "Tasks",
+                        principalTable: "Task",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Columns_TableId",
-                table: "Columns",
+                name: "IX_Column_TableId",
+                table: "Column",
                 column: "TableId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Substasks_TaskId",
-                table: "Substasks",
+                name: "IX_Subtask_TaskId",
+                table: "Subtask",
                 column: "TaskId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tables_UserId",
-                table: "Tables",
+                name: "IX_Table_UserId",
+                table: "Table",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tasks_ColumnId",
-                table: "Tasks",
+                name: "IX_Task_ColumnId",
+                table: "Task",
                 column: "ColumnId");
         }
 
@@ -148,19 +151,19 @@ namespace backend.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Substasks");
+                name: "Subtask");
 
             migrationBuilder.DropTable(
-                name: "Tasks");
+                name: "Task");
 
             migrationBuilder.DropTable(
-                name: "Columns");
+                name: "Column");
 
             migrationBuilder.DropTable(
-                name: "Tables");
+                name: "Table");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "User");
         }
     }
 }

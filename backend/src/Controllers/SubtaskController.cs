@@ -20,13 +20,13 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Subtask>>> GetSubtasks()
         {
-            return await _context.Subtasks.ToListAsync();
+            return await _context.Subtask.ToListAsync();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Subtask>> GetSubtask(int id)
         {
-            var subtask = await _context.Subtasks.FindAsync(id);
+            var subtask = await _context.Subtask.FindAsync(id);
 
             if (subtask == null)
             {
@@ -39,7 +39,7 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Subtask>> PostSubtask(Subtask subtask)
         {
-            _context.Subtasks.Add(subtask);
+            _context.Subtask.Add(subtask);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetSubtask), new { id = subtask.Id }, subtask);
@@ -77,13 +77,13 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSubtask(int id)
         {
-            var subtask = await _context.Subtasks.FindAsync(id);
+            var subtask = await _context.Subtask.FindAsync(id);
             if (subtask == null)
             {
                 return NotFound();
             }
 
-            _context.Subtasks.Remove(subtask);
+            _context.Subtask.Remove(subtask);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -91,7 +91,7 @@ namespace backend.Controllers
 
         private bool SubtaskExists(int id)
         {
-            return _context.Subtasks.Any(e => e.Id == id);
+            return _context.Subtask.Any(e => e.Id == id);
         }
     }
 }

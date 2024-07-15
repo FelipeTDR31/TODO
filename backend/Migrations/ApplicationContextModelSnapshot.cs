@@ -33,6 +33,9 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
                     b.Property<int>("TableId")
                         .HasColumnType("int");
 
@@ -40,7 +43,7 @@ namespace backend.Migrations
 
                     b.HasIndex("TableId");
 
-                    b.ToTable("Columns");
+                    b.ToTable("Column");
                 });
 
             modelBuilder.Entity("backend.Models.Subtask", b =>
@@ -51,9 +54,12 @@ namespace backend.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<bool>("IsDone")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("TaskId")
                         .HasColumnType("int");
@@ -62,7 +68,7 @@ namespace backend.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("Subtasks");
+                    b.ToTable("Subtask");
                 });
 
             modelBuilder.Entity("backend.Models.Table", b =>
@@ -84,7 +90,7 @@ namespace backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Tables");
+                    b.ToTable("Table");
                 });
 
             modelBuilder.Entity("backend.Models.Task", b =>
@@ -106,11 +112,14 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ColumnId");
 
-                    b.ToTable("Tasks");
+                    b.ToTable("Task");
                 });
 
             modelBuilder.Entity("backend.Models.User", b =>
@@ -135,7 +144,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("User");
                 });
 
             modelBuilder.Entity("backend.Models.Column", b =>

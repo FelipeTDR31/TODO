@@ -20,14 +20,14 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Column>>> GetColumns()
         {
-            return await _context.Columns.ToListAsync();
+            return await _context.Column.ToListAsync();
         }
 
         // GET: api/Column/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Column>> GetColumn(int id)
         {
-            var column = await _context.Columns.FindAsync(id);
+            var column = await _context.Column.FindAsync(id);
 
             if (column == null)
             {
@@ -41,7 +41,7 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Column>> PostColumn(Column column)
         {
-            _context.Columns.Add(column);
+            _context.Column.Add(column);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetColumn), new { id = column.Id }, column);
@@ -81,13 +81,13 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteColumn(int id)
         {
-            var column = await _context.Columns.FindAsync(id);
+            var column = await _context.Column.FindAsync(id);
             if (column == null)
             {
                 return NotFound();
             }
 
-            _context.Columns.Remove(column);
+            _context.Column.Remove(column);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -95,7 +95,7 @@ namespace backend.Controllers
 
         private bool ColumnExists(int id)
         {
-            return _context.Columns.Any(e => e.Id == id);
+            return _context.Column.Any(e => e.Id == id);
         }
     }
 }

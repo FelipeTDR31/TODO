@@ -19,13 +19,13 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Models.Task>>> GetTasks()
         {
-            return await _context.Tasks.ToListAsync();
+            return await _context.Task.ToListAsync();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Models.Task>> GetTask(int id)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _context.Task.FindAsync(id);
 
             if (task == null)
             {
@@ -38,7 +38,7 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Models.Task>> PostTask(Models.Task task)
         {
-            _context.Tasks.Add(task);
+            _context.Task.Add(task);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
@@ -76,13 +76,13 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _context.Task.FindAsync(id);
             if (task == null)
             {
                 return NotFound();
             }
 
-            _context.Tasks.Remove(task);
+            _context.Task.Remove(task);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -90,7 +90,7 @@ namespace backend.Controllers
 
         private bool TaskExists(int id)
         {
-            return _context.Tasks.Any(e => e.Id == id);
+            return _context.Task.Any(e => e.Id == id);
         }
     }
 }

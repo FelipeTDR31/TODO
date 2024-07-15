@@ -8,12 +8,30 @@ import HideImg from "@/utils/images/hide.png";
 import React, { useEffect, useState } from "react";
 import Column from "@/components/Column";
 import { Input } from "@/utils/Tags/Input";
+import { useRouter } from "next/navigation";
+import { getUser } from "@/utils/requests/User";
 
 export default function UserPage({ params }: { params: { user: string } }) {
     const [mode, setMode] = useState<"light" | "dark">(
         typeof window !== "undefined" ? localStorage.getItem("theme") as ("light" | "dark") : "dark"
     );
     const [showAddNewTask, setShowAddNewTask] = useState(false);
+    const [user, setUser] = useState({});
+    const router = useRouter();
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            router.back();
+        }
+
+        async function fetchUser() {
+            const user = await getUser(params.user);
+            setUser(user);
+        }
+
+        fetchUser();
+    }, []);
 
     const toggleMode = (e : any) => {
         const newMode = mode === "light" ? "dark" : "light";
@@ -73,6 +91,9 @@ export default function UserPage({ params }: { params: { user: string } }) {
         },
       }));
       
+    const addNewTable = () => {
+        
+    }
 
     return (
         <main className="kanban-template">
