@@ -43,6 +43,11 @@
   background: white;
 }
 
+.chosen-board {
+  background-color: var(--btn-color);
+  color: white;
+}
+
 .input-border{
   border: rgb(156 163 175) 1px solid;
   background: var(--bg-secondary);
@@ -63,14 +68,17 @@
 
 .aside-content{
   grid-area: aside;
+  transition: width 1s, opacity 0.15s, display 0.15s;
 }
 
 .main-content{
   grid-area: main;
+  transition: width 1s;
 }
 
 .cDiv{
   grid-area: cDiv;
+  transition: width 1s;
 }
 
 
@@ -89,12 +97,14 @@
   z-index: 1;
 }
 
-.dropdown-content a {
+.dropdown-content span {
   color: black;
   padding: 12px 16px;
-  text-decoration: none;
+  cursor: pointer;
   display: block;
 }
+
+.dropdown-content span:hover {background-color: #f1f1f1;}
 
 .dropdown:hover .dropdown-content {
   display: block;
@@ -108,3 +118,4 @@ input[type=checkbox]:checked {
   content: url("https://api.iconify.design/akar-icons:check.svg?color=white");
   text-align: center;
 }
+

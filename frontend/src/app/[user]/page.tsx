@@ -95,23 +95,47 @@ export default function UserPage({ params }: { params: { user: string } }) {
         
     }
 
+    const hideSidebar = () => {
+      const aside = document.querySelector(".aside-content");
+      const main = document.querySelector(".main-content");
+      const cDiv = document.querySelector(".cDiv");
+      if (aside?.classList.contains("w-[22vw]")) {
+        aside.classList.remove("w-[22vw]");
+        aside.classList.remove("inline");
+        aside.classList.add("hidden");
+        aside.classList.add("w-0");
+        aside.classList.add("opacity-0");
+        main?.classList.add("w-[100vw]");
+        cDiv?.classList.add("w-[100vw]");
+        cDiv?.classList.remove("w-[78vw]");
+      } else {
+        aside?.classList.add("w-[22vw]");
+        aside?.classList.remove("w-0");
+        aside?.classList.remove("opacity-0");
+        main?.classList.remove("w-[100vw]");
+        cDiv?.classList.remove("w-[100vw]");
+        cDiv?.classList.add("w-[78vw]");
+      }
+    }
+
     return (
         <main className="kanban-template">
-            <aside className={`aside-content p-6 font-bold w-[22vw] h-screen ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+            <aside className={`aside-content inline p-6 font-bold w-[22vw] h-screen ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <h3 className={`text-2xl ${mode === "dark" ? "text-white" : "text-black"}`}>{params.user} Kanban</h3>
                 <div className="mt-10">
                     <h4 className="text-gray-400 text-sm">ALL BOARDS {"()"}</h4>
-                    <div>
-                        <button className="create-board py-4 pl-7 pr-5 -ml-7 hover:opacity-90">+Create New Board</button>
+                    <div className="mt-2">
+                        <button className="chosen-board py-2 pl-10 pr-24 -ml-10 rounded-3xl hover:opacity-90">Default Board</button>
+                        <button className="create-board py-2 pl-7 -ml-7 hover:opacity-90">+Create New Board</button>
                     </div>
                 </div>
-                <div className="mt-[22rem]">
+                <div className="mt-[21rem]">
                     <div className={`flex gap-3 items-center size-fit rounded-md py-2 px-16 ${mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`}>
                         <Image src={SunImg} alt="sun" width={25} height={25} />
                         <AntSwitch checked={mode === "dark" ? true : false} onClick={toggleMode} />
                         <Image src={MoonImg} alt="moon" width={20} height={20} />
                     </div>
-                    <button className={`flex gap-3 items-center size-fit mt-2 py-2 pr-20 pl-16 -m-16 rounded-3xl hover:opacity-80 ${mode === "dark" ? "hover:bg-gray-600" : "hover:bg-gray-300"}`}><Image src={HideImg} alt="hide" width={25} height={25} />Hide Sidebar</button>
+                    <button type="button" onClick={hideSidebar} className={`flex gap-3 items-center size-fit mt-2 py-2 pr-20 pl-16 -m-16 rounded-3xl hover:opacity-80 ${mode === "dark" ? "hover:bg-gray-600" : "hover:bg-gray-300"}`}><Image src={HideImg} alt="hide" width={25} height={25} />Hide Sidebar</button>
                 </div>
             </aside>
 
@@ -122,9 +146,9 @@ export default function UserPage({ params }: { params: { user: string } }) {
                     <div className="dropdown">
                         <button className="text-gray-600 text-2xl">&#8942;</button>
                         <div className="dropdown-content">
-                            <a href="#">Option 1</a>
-                            <a href="#">Option 2</a>
-                            <a href="#">Option 3</a>
+                            <span>Delete Board</span>
+                            <span>Change Board</span>
+                            <span>Delete Column</span>
                         </div>
                     </div>
                 </div>

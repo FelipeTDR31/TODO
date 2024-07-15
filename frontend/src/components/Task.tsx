@@ -27,9 +27,8 @@ export default function Task ({mode} : {mode: "light" | "dark"}) {
                         <div className="dropdown">
                             <button className="text-gray-600 text-2xl font-semibold">&#8942;</button>
                             <div className="dropdown-content">
-                                <a href="#">Option 1</a>
-                                <a href="#">Option 2</a>
-                                <a href="#">Option 3</a>
+                            <span className="font-semibold">Delete Task</span>
+                            <span className="font-semibold">Change Task</span>
                             </div>
                         </div>
                     </div>
