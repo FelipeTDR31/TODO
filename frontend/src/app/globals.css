@@ -68,17 +68,17 @@
 
 .aside-content{
   grid-area: aside;
-  transition: width 1s, opacity 0.15s, display 0.15s;
+  transition: width 0.3s, opacity 0.15s, display 0.15s;
 }
 
 .main-content{
   grid-area: main;
-  transition: width 1s;
+  transition: width 0.3s;
 }
 
 .cDiv{
   grid-area: cDiv;
-  transition: width 1s;
+  transition: width 0.3s;
 }
 
 

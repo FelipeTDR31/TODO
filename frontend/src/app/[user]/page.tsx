@@ -123,13 +123,15 @@ export default function UserPage({ params }: { params: { user: string } }) {
       const cDiv = document.querySelector(".cDiv");
       if (aside?.classList.contains("w-[22vw]")) {
         aside.classList.remove("w-[22vw]");
-        aside.classList.remove("inline");
-        aside.classList.add("hidden");
         aside.classList.add("w-0");
         aside.classList.add("opacity-0");
         main?.classList.add("w-[100vw]");
         cDiv?.classList.add("w-[100vw]");
         cDiv?.classList.remove("w-[78vw]");
+        setTimeout(() => {
+          aside.classList.remove("inline");
+          aside.classList.add("hidden");
+        }, 300);
         setHideSidebar(true);
       } else {
         aside?.classList.add("w-[22vw]");
