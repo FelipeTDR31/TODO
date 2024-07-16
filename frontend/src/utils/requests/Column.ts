@@ -1,17 +1,27 @@
 import axios from "axios";
+import { Task } from "./Task";
 
-export const createColumn = async (name: string, position : number) => {
+export interface Column {
+    id: number;
+    name: string;
+    position: number;
+    TableID : number;
+    tasks?: Task[];
+}
+
+export const createColumn = async (name: string, position : number, TableID : number) : Promise<Column> => {
     return axios
         .post("http://localhost:5002/Column", {
             name,
-            position
+            position,
+            TableID
         })
         .then((response) => {
             return response.data;
         });
 }
 
-export const getColumns = async () => {
+export const getColumns = async (TableID : number) : Promise<Column[]> => {
     return axios
         .get("http://localhost:5002/api/Column")
         .then((response) => {
@@ -19,7 +29,7 @@ export const getColumns = async () => {
         });
 }
 
-export const getColumn = async (id: number) => {
+export const getColumn = async (id: number) : Promise<Column> => {
     return axios
         .get(`http://localhost:5002/api/Column/${id}`)
         .then((response) => {
@@ -27,7 +37,7 @@ export const getColumn = async (id: number) => {
         });
 }
 
-export const putColumn = async (id: number, name: string, position : number) => {
+export const updateColumn = async (id: number, name: string, position : number) : Promise<Column> => {
     return axios
         .put(`http://localhost:5002/api/Column/${id}`, {
             name,

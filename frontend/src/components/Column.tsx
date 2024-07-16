@@ -2,7 +2,7 @@ import { Input } from '@/utils/Tags/Input';
 import { useState, useEffect } from 'react';
 import Task from './Task';
 
-export default function Column({mode} : {mode: 'light' | 'dark'}) {
+export default function Column({mode, name, userID} : {mode: 'light' | 'dark', name?: string, userID: number}) {
     const [input, setInput] = useState('');
     const [title, setTitle] = useState('');
 
@@ -13,12 +13,15 @@ export default function Column({mode} : {mode: 'light' | 'dark'}) {
                 setInput('');
             }
         }
-
-        document.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-        };
+        if (!name) {
+            document.addEventListener('keydown', handleKeyDown);
+    
+            return () => {
+                document.removeEventListener('keydown', handleKeyDown);
+            };
+        }else{
+            setTitle(name);
+        }
     }, [input]);
 
     return (

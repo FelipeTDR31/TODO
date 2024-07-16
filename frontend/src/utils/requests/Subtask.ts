@@ -1,6 +1,13 @@
 import axios from "axios";
 
-export const getSubtasks = async () => {
+export interface Subtask {
+    id: number;
+    description: string;
+    isDone: boolean;
+    taskID: number;
+}
+
+export const getSubtasks = async (taskID: number) : Promise<Subtask[]> => {
     return axios
         .get("http://localhost:5002/api/Subtask")
         .then((response) => {
@@ -8,7 +15,7 @@ export const getSubtasks = async () => {
         });
 }
 
-export const getSubtask = async (id: number) => {
+export const getSubtask = async (id: number) : Promise<Subtask> => {
     return axios
         .get(`http://localhost:5002/api/Subtask/${id}`)
         .then((response) => {
@@ -16,10 +23,10 @@ export const getSubtask = async (id: number) => {
         });
 }
 
-export const createSubtask = async (task_id: number, description: string) => {
+export const createSubtask = async (taskID: number, description: string) : Promise<Subtask> => {
     return axios
         .post("http://localhost:5002/api/Subtask", {
-            task_id,
+            taskID,
             description
         })
         .then((response) => {
@@ -27,10 +34,10 @@ export const createSubtask = async (task_id: number, description: string) => {
         });
 }
 
-export const updateSubtask = async (id: number, description: string) => {
+export const updateSubtask = async (id: number, isDone: boolean) : Promise<Subtask> => {
     return axios
         .put(`http://localhost:5002/api/Subtask/${id}`, {
-            description
+            isDone
         })
         .then((response) => {
             return response.data;

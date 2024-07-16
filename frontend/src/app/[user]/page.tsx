@@ -5,18 +5,27 @@ import Image from "next/image";
 import SunImg from "@/utils/images/sun.png";
 import MoonImg from "@/utils/images/moon.png";
 import HideImg from "@/utils/images/hide.png";
+import SeeImg from "@/utils/images/see.png";
 import React, { useEffect, useState } from "react";
 import Column from "@/components/Column";
 import { Input } from "@/utils/Tags/Input";
 import { useRouter } from "next/navigation";
 import { getUser } from "@/utils/requests/User";
+import { getTables } from "@/utils/requests/Table";
+import { getColumns } from "@/utils/requests/Column";
+import { User } from "@/utils/requests/User";
+import { Table } from "@/utils/requests/Table";
+import { Column as ColumnType } from "@/utils/requests/Column";
 
 export default function UserPage({ params }: { params: { user: string } }) {
     const [mode, setMode] = useState<"light" | "dark">(
         typeof window !== "undefined" ? localStorage.getItem("theme") as ("light" | "dark") : "dark"
     );
     const [showAddNewTask, setShowAddNewTask] = useState(false);
-    const [user, setUser] = useState({});
+    const [user, setUser] = useState<User>();
+    const [boards, setBoards] = useState<Table[]>([]);
+    const [columns, setColumns] = useState<ColumnType[]>([]);
+    const [hideSidebar, setHideSidebar] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -30,7 +39,20 @@ export default function UserPage({ params }: { params: { user: string } }) {
             setUser(user);
         }
 
+        async function fetchBoards(userID : number) {
+            const boards = await getTables(userID);
+            setBoards(boards);
+        }
+
+        async function fetchColumns(tableID : number) {
+            const columns = await getColumns(tableID);
+            setColumns(columns);
+        }
+
         fetchUser();
+       // fetchBoards(user!.id);
+       // fetchColumns(boards[0].id);
+
     }, []);
 
     const toggleMode = (e : any) => {
@@ -91,11 +113,11 @@ export default function UserPage({ params }: { params: { user: string } }) {
         },
       }));
       
-    const addNewTable = () => {
+    const addNewBoard = () => {
         
     }
 
-    const hideSidebar = () => {
+    const hideSidebarFn = () => {
       const aside = document.querySelector(".aside-content");
       const main = document.querySelector(".main-content");
       const cDiv = document.querySelector(".cDiv");
@@ -108,13 +130,17 @@ export default function UserPage({ params }: { params: { user: string } }) {
         main?.classList.add("w-[100vw]");
         cDiv?.classList.add("w-[100vw]");
         cDiv?.classList.remove("w-[78vw]");
+        setHideSidebar(true);
       } else {
         aside?.classList.add("w-[22vw]");
+        aside?.classList.add("inline");
+        aside?.classList.remove("hidden");
         aside?.classList.remove("w-0");
         aside?.classList.remove("opacity-0");
         main?.classList.remove("w-[100vw]");
         cDiv?.classList.remove("w-[100vw]");
         cDiv?.classList.add("w-[78vw]");
+        setHideSidebar(false);
       }
     }
 
@@ -135,9 +161,14 @@ export default function UserPage({ params }: { params: { user: string } }) {
                         <AntSwitch checked={mode === "dark" ? true : false} onClick={toggleMode} />
                         <Image src={MoonImg} alt="moon" width={20} height={20} />
                     </div>
-                    <button type="button" onClick={hideSidebar} className={`flex gap-3 items-center size-fit mt-2 py-2 pr-20 pl-16 -m-16 rounded-3xl hover:opacity-80 ${mode === "dark" ? "hover:bg-gray-600" : "hover:bg-gray-300"}`}><Image src={HideImg} alt="hide" width={25} height={25} />Hide Sidebar</button>
                 </div>
             </aside>
+            {
+              hideSidebar ?
+              <button onClick={hideSidebarFn} className="rounded-full flex justify-center items-center w-10 h-10 border-black border-2 absolute bottom-[1rem] left-2"><Image src={SeeImg} alt="see" width={25} height={25} /></button>
+              :
+              <button type="button" onClick={hideSidebarFn} className={`flex font-semibold absolute bottom-[4.5rem] left-8 gap-3 items-center size-fit mt-2 py-2 pr-20 pl-16 -m-16 rounded-3xl hover:opacity-80 ${mode === "dark" ? "hover:bg-gray-600" : "hover:bg-gray-300"}`}><Image src={HideImg} alt="hide" width={25} height={25} />Hide Sidebar</button>
+            }
 
             <div className={`cDiv font-bold flex items-center justify-between p-5 border-b border-l border-gray-500 w-[78vw] h-[15vh] ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <h1 className={`text-xl ${mode === "dark" ? "text-white" : "text-black"}`}>Platform Launch</h1>
@@ -155,7 +186,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
             </div>
 
             <div className="main-content h-[80vh] pl-4 pt-4 flex gap-6">
-                <Column mode={mode} />
+                <Column mode={mode} userID={1} />
                 <button className={`h-full w-[22vw] font-bold ${mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
             </div>
 
