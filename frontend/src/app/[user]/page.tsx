@@ -13,6 +13,13 @@ import { useRouter } from "next/navigation";
 import { getUser } from "@/utils/requests/User";
 import { getTables } from "@/utils/requests/Table";
 import { getColumns } from "@/utils/requests/Column";
+import { getSubtasks } from "@/utils/requests/Subtask";
+import { getTasks } from "@/utils/requests/Task";
+import { createTable } from "@/utils/requests/Table";
+import { createColumn } from "@/utils/requests/Column";
+import { updateColumn } from "@/utils/requests/Column";
+import { createSubtask } from "@/utils/requests/Subtask";
+import { createTask } from "@/utils/requests/Task";
 import { User } from "@/utils/requests/User";
 import { Table } from "@/utils/requests/Table";
 import { Column as ColumnType } from "@/utils/requests/Column";
@@ -22,9 +29,12 @@ export default function UserPage({ params }: { params: { user: string } }) {
         typeof window !== "undefined" ? localStorage.getItem("theme") as ("light" | "dark") : "dark"
     );
     const [showAddNewTask, setShowAddNewTask] = useState(false);
+    const [showDarkBackground, setShowDarkBackground] = useState(false);
     const [user, setUser] = useState<User>();
     const [boards, setBoards] = useState<Table[]>([]);
     const [columns, setColumns] = useState<ColumnType[]>([]);
+    const [numberOfSubtasks, setNumberOfSubtasks] = useState(1);
+    const [showBoardCreation, setShowBoardCreation] = useState(false);
     const [hideSidebar, setHideSidebar] = useState(false);
     const router = useRouter();
 
@@ -112,10 +122,6 @@ export default function UserPage({ params }: { params: { user: string } }) {
           boxSizing: 'border-box',
         },
       }));
-      
-    const addNewBoard = () => {
-        
-    }
 
     const hideSidebarFn = () => {
       const aside = document.querySelector(".aside-content");
@@ -146,15 +152,32 @@ export default function UserPage({ params }: { params: { user: string } }) {
       }
     }
 
+    const createBoard = async () => {
+      //const board = await createTable(user!.name)
+      const boards = document.querySelector("#boards")
+      const newBoard = document.createElement("button")
+      for (let i = 0; i < boards!.children.length; i++) {
+        const child = boards?.children[i];
+        if (child?.classList.contains("chosen-board")) {
+          child?.classList.remove("chosen-board");
+        }
+      }
+      newBoard.className = "chosen-board py-2 pl-10 pr-24 -ml-10 rounded-3xl hover:opacity-90"
+      newBoard.innerHTML = "NEW BOARD"
+      boards?.insertBefore(newBoard, boards.firstChild);
+      setShowBoardCreation(false);
+      setShowDarkBackground(false);
+    }
+
     return (
         <main className="kanban-template">
             <aside className={`aside-content inline p-6 font-bold w-[22vw] h-screen ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <h3 className={`text-2xl ${mode === "dark" ? "text-white" : "text-black"}`}>{params.user} Kanban</h3>
                 <div className="mt-10">
                     <h4 className="text-gray-400 text-sm">ALL BOARDS {"()"}</h4>
-                    <div className="mt-2">
+                    <div className="mt-2" id="boards">
                         <button className="chosen-board py-2 pl-10 pr-24 -ml-10 rounded-3xl hover:opacity-90">Default Board</button>
-                        <button className="create-board py-2 pl-7 -ml-7 hover:opacity-90">+Create New Board</button>
+                        <button className="create-board py-2 pl-7 -ml-7 hover:opacity-90" onClick={() => {setShowBoardCreation(true); setShowDarkBackground(true)}}>+Create New Board</button>
                     </div>
                 </div>
                 <div className="mt-[21rem]">
@@ -175,7 +198,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
             <div className={`cDiv font-bold flex items-center justify-between p-5 border-b border-l border-gray-500 w-[78vw] h-[15vh] ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <h1 className={`text-xl ${mode === "dark" ? "text-white" : "text-black"}`}>Platform Launch</h1>
                 <div className="flex gap-3 items-center">
-                    <button className="bg-button font-bold text-base p-3 px-4 rounded-3xl" onClick={() => setShowAddNewTask(!showAddNewTask)}>+ Add New Task</button>
+                    <button className="bg-button font-bold text-base p-3 px-4 rounded-3xl" onClick={() => {setShowAddNewTask(!showAddNewTask); setShowDarkBackground(!showDarkBackground)}}>+ Add New Task</button>
                     <div className="dropdown">
                         <button className="text-gray-600 text-2xl">&#8942;</button>
                         <div className="dropdown-content">
@@ -209,11 +232,17 @@ export default function UserPage({ params }: { params: { user: string } }) {
                 
                 <div className="flex flex-col gap-2">
                   <label className={`font-semibold text-sm ${mode === "dark" ? "text-white" : "text-black"}`}>Subtasks</label>
-                  <div className="flex gap-4">
-                    <Input type="text" className="subtasks font-semibold text-sm w-full" name="subtasks" />
-                    <button className="text-gray-400 font-bold">X</button>
+                  <div className="flex flex-col items-center p-1 gap-2 overflow-y-auto scrollbar-hidden max-h-[5.2rem] rounded-lg bg-[rgba(0,0,0,0.2)]">
+                    {
+                      [...Array(numberOfSubtasks)].map((_, index) => (
+                        <div className="flex gap-2 subtasks" key={index} id={index.toString()}>
+                          <Input type="text" className="subtasksInput font-semibold text-sm w-[20rem]" name="subtasks" />
+                          <button type="button" className="text-gray-400 font-bold" onClick={() => {if (numberOfSubtasks > 1) document.querySelectorAll(".subtasks").forEach((subtask) => subtask.id == index.toString() ? subtask.remove() : null)}}>X</button>
+                        </div>
+                      ))
+                    }
                   </div>
-                  <button className="bg-button font-bold text-base p-2 rounded-3xl w-full">+ Add New Subtask</button>
+                  <button className="bg-button font-bold text-base p-2 rounded-3xl w-full" onClick={() => setNumberOfSubtasks(numberOfSubtasks + 1)}>+ Add New Subtask</button>
                 </div>
                 
                 <div className="flex flex-col gap-2">
@@ -231,7 +260,17 @@ export default function UserPage({ params }: { params: { user: string } }) {
           }
 
           {
-            showAddNewTask ?  <span className="absolute top-0 left-0 w-screen h-screen bg-black opacity-50" onClick={() => setShowAddNewTask(false)}></span> : null
+            showDarkBackground ?  <span className="absolute top-0 left-0 w-screen h-screen bg-black opacity-50" onClick={() => {setShowAddNewTask(false); setShowDarkBackground(false); setShowBoardCreation(false)}}></span> : null
+          }
+
+          {
+            showBoardCreation ? 
+            <div className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-[30vh] left-[35vw] z-10 rounded-md ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+              <Input placeholder="Board Name" type="text" id="boardName" name="boardName" />
+              <button onClick={createBoard} className="bg-button font-bold text-base p-2 rounded-3xl w-full">Create Board</button>
+            </div>
+            :
+            null
           }
         </main>
     );
