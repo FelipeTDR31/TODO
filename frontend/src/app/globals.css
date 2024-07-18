@@ -68,17 +68,32 @@
 
 .aside-content{
   grid-area: aside;
-  transition: width 0.3s, opacity 0.15s, display 0.15s;
+  transition: transform 0.25s;
+}
+
+.transform-aside{
+  transform: translateX(-20rem);
 }
 
 .main-content{
   grid-area: main;
-  transition: width 0.3s;
+  transition: width 0.25s;
 }
 
 .cDiv{
   grid-area: cDiv;
-  transition: width 0.3s;
+  transition: width 0.25s;
+}
+
+.transform-contents{
+  transform: translateX(-19rem);
+}
+.transform-contents-2{
+  transform: translateX(19rem);
+}
+
+.transition-contents{
+  transition: transform 0.25s;
 }
 
 

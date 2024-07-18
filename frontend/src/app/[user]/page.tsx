@@ -127,27 +127,45 @@ export default function UserPage({ params }: { params: { user: string } }) {
       const aside = document.querySelector(".aside-content");
       const main = document.querySelector(".main-content");
       const cDiv = document.querySelector(".cDiv");
-      if (aside?.classList.contains("w-[22vw]")) {
-        aside.classList.remove("w-[22vw]");
-        aside.classList.add("w-0");
-        aside.classList.add("opacity-0");
-        main?.classList.add("w-[100vw]");
-        cDiv?.classList.add("w-[100vw]");
-        cDiv?.classList.remove("w-[78vw]");
+      if (aside?.classList.contains("transform-aside")==false) {
+        aside.classList.add("transform-aside");
         setTimeout(() => {
           aside.classList.remove("inline");
           aside.classList.add("hidden");
-        }, 300);
+          main?.classList.remove("transition-contents");
+          cDiv?.classList.remove("transition-contents");
+          main?.classList.remove("transform-contents");
+          cDiv?.classList.remove("transform-contents");
+          document.getElementsByTagName("body")[0].classList.remove("scrollbar-hidden");
+        }, 250);
+        main?.classList.add("w-[100vw]");
+        cDiv?.classList.add("w-[100vw]");
+        main?.classList.add("transition-contents");
+        cDiv?.classList.add("transition-contents");
+        main?.classList.add("transform-contents");
+        cDiv?.classList.add("transform-contents");
+        cDiv?.classList.remove("w-[78vw]");
+        document.getElementsByTagName("body")[0].classList.add("scrollbar-hidden");
         setHideSidebar(true);
       } else {
-        aside?.classList.add("w-[22vw]");
-        aside?.classList.add("inline");
-        aside?.classList.remove("hidden");
-        aside?.classList.remove("w-0");
-        aside?.classList.remove("opacity-0");
+        aside?.classList.remove("transform-aside");
+        setTimeout(() => {
+          aside?.classList.add("inline");
+          aside?.classList.remove("hidden");
+          main?.classList.remove("transition-contents");
+          cDiv?.classList.remove("transition-contents");
+          main?.classList.remove("transform-contents-2");
+          cDiv?.classList.remove("transform-contents-2");
+          document.getElementsByTagName("body")[0].classList.remove("scrollbar-hidden");
+        }, 250);
         main?.classList.remove("w-[100vw]");
         cDiv?.classList.remove("w-[100vw]");
         cDiv?.classList.add("w-[78vw]");
+        main?.classList.add("transition-contents");
+        cDiv?.classList.add("transition-contents");
+        main?.classList.add("transform-contents-2");
+        cDiv?.classList.add("transform-contents-2");
+        document.getElementsByTagName("body")[0].classList.add("scrollbar-hidden");
         setHideSidebar(false);
       }
     }
@@ -211,7 +229,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
             </div>
 
             <div className="main-content h-[80vh] pl-4 pt-4 flex gap-6">
-                <Column mode={mode} userID={1} />
+                <Column mode={mode} userID={1} name="To Do" />
                 <button className={`h-full w-[22vw] font-bold ${mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
             </div>
 
