@@ -1,6 +1,8 @@
 'use client'
 
-import { styled, Switch } from "@mui/material";
+import { Box, Button, Drawer, IconButton, Menu, MenuItem, styled, Switch } from "@mui/material";
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import anime from 'animejs/lib/anime.es.js';
 import Image from "next/image";
 import SunImg from "@/utils/images/sun.png";
 import MoonImg from "@/utils/images/moon.png";
@@ -23,19 +25,18 @@ import { createTask } from "@/utils/requests/Task";
 import { User } from "@/utils/requests/User";
 import { Table } from "@/utils/requests/Table";
 import { Column as ColumnType } from "@/utils/requests/Column";
-
 export default function UserPage({ params }: { params: { user: string } }) {
     const [mode, setMode] = useState<"light" | "dark">(
         typeof window !== "undefined" ? localStorage.getItem("theme") as ("light" | "dark") : "dark"
     );
     const [showAddNewTask, setShowAddNewTask] = useState(false);
-    const [showDarkBackground, setShowDarkBackground] = useState(false);
     const [user, setUser] = useState<User>();
     const [boards, setBoards] = useState<Table[]>([]);
     const [columns, setColumns] = useState<ColumnType[]>([]);
     const [numberOfSubtasks, setNumberOfSubtasks] = useState(1);
     const [showBoardCreation, setShowBoardCreation] = useState(false);
-    const [hideSidebar, setHideSidebar] = useState(false);
+    const [showDrawer, setShowDrawer] = useState(true);
+    const [showDropdown, setShowDropdown] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -123,53 +124,6 @@ export default function UserPage({ params }: { params: { user: string } }) {
         },
       }));
 
-    const hideSidebarFn = () => {
-      const aside = document.querySelector(".aside-content");
-      const main = document.querySelector(".main-content");
-      const cDiv = document.querySelector(".cDiv");
-      if (aside?.classList.contains("transform-aside")==false) {
-        aside.classList.add("transform-aside");
-        setTimeout(() => {
-          aside.classList.remove("inline");
-          aside.classList.add("hidden");
-          main?.classList.remove("transition-contents");
-          cDiv?.classList.remove("transition-contents");
-          main?.classList.remove("transform-contents");
-          cDiv?.classList.remove("transform-contents");
-          document.getElementsByTagName("body")[0].classList.remove("scrollbar-hidden");
-        }, 250);
-        main?.classList.add("w-[100vw]");
-        cDiv?.classList.add("w-[100vw]");
-        main?.classList.add("transition-contents");
-        cDiv?.classList.add("transition-contents");
-        main?.classList.add("transform-contents");
-        cDiv?.classList.add("transform-contents");
-        cDiv?.classList.remove("w-[78vw]");
-        document.getElementsByTagName("body")[0].classList.add("scrollbar-hidden");
-        setHideSidebar(true);
-      } else {
-        aside?.classList.remove("transform-aside");
-        setTimeout(() => {
-          aside?.classList.add("inline");
-          aside?.classList.remove("hidden");
-          main?.classList.remove("transition-contents");
-          cDiv?.classList.remove("transition-contents");
-          main?.classList.remove("transform-contents-2");
-          cDiv?.classList.remove("transform-contents-2");
-          document.getElementsByTagName("body")[0].classList.remove("scrollbar-hidden");
-        }, 250);
-        main?.classList.remove("w-[100vw]");
-        cDiv?.classList.remove("w-[100vw]");
-        cDiv?.classList.add("w-[78vw]");
-        main?.classList.add("transition-contents");
-        cDiv?.classList.add("transition-contents");
-        main?.classList.add("transform-contents-2");
-        cDiv?.classList.add("transform-contents-2");
-        document.getElementsByTagName("body")[0].classList.add("scrollbar-hidden");
-        setHideSidebar(false);
-      }
-    }
-
     const createBoard = async () => {
       //const board = await createTable(user!.name)
       const boards = document.querySelector("#boards")
@@ -184,54 +138,103 @@ export default function UserPage({ params }: { params: { user: string } }) {
       newBoard.innerHTML = "NEW BOARD"
       boards?.insertBefore(newBoard, boards.firstChild);
       setShowBoardCreation(false);
-      setShowDarkBackground(false);
+    }
+
+    function hideDrawer() {
+      setShowDrawer(!showDrawer);
+      if (!showDrawer) {
+        anime({
+          targets: [".cDiv", ".main-content"],
+          width: "78vw",
+          duration: 10,
+        })
+        anime({
+          targets: ".main-content",
+          translateX: "0vw",
+        })
+      }else{
+        anime({
+          targets: [".cDiv", ".main-content"],
+          width: "100vw",
+          duration: 10,
+        })
+        anime({
+          targets: ".main-content",
+          translateX: "-22vw",
+        })
+      }
     }
 
     return (
-        <main className="kanban-template">
-            <aside className={`aside-content inline p-6 font-bold w-[22vw] h-screen ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
-                <h3 className={`text-2xl ${mode === "dark" ? "text-white" : "text-black"}`}>{params.user} Kanban</h3>
-                <div className="mt-10">
-                    <h4 className="text-gray-400 text-sm">ALL BOARDS {"()"}</h4>
+        <Box className="kanban-template">
+            <Drawer
+             open={showDrawer} 
+             anchor="left"
+             onClose={hideDrawer}
+             classes={{
+              paper: `aside-content flex flex-col justify-around p-6 font-bold w-[22vw] h-screen ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`
+             }}
+             hideBackdrop
+             >
+                <h3 className={`text-3xl -ml-3 -mt-8 ${mode === "dark" ? "text-white" : "text-black"}`}>{params.user} Kanban</h3>
+                <div>
+                    <h4 className="text-gray-400 text-sm">Your Boards {"()"}</h4>
                     <div className="mt-2" id="boards">
                         <button className="chosen-board py-2 pl-10 pr-24 -ml-10 rounded-3xl hover:opacity-90">Default Board</button>
-                        <button className="create-board py-2 pl-7 -ml-7 hover:opacity-90" onClick={() => {setShowBoardCreation(true); setShowDarkBackground(true)}}>+Create New Board</button>
+                        <button className="create-board py-2 pl-7 -ml-7 hover:opacity-90" onClick={() => {setShowBoardCreation(true)}}>+Create New Board</button>
                     </div>
                 </div>
-                <div className="mt-[21rem]">
+                <div>
+                    <h4 className="text-gray-400 text-sm">Team Boards {"()"}</h4>
+                    <div className="mt-2" id="boards">
+                        <button className="chosen-board py-2 pl-10 pr-24 -ml-10 rounded-3xl hover:opacity-90">Default Board</button>
+                        <button className="create-board py-2 pl-7 -ml-7 hover:opacity-90" onClick={() => {setShowBoardCreation(true)}}>+Create New Board</button>
+                    </div>
+                </div>
+                <div>
                     <div className={`flex gap-3 items-center size-fit rounded-md py-2 px-16 ${mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`}>
                         <Image src={SunImg} alt="sun" width={25} height={25} />
                         <AntSwitch checked={mode === "dark" ? true : false} onClick={toggleMode} />
                         <Image src={MoonImg} alt="moon" width={20} height={20} />
                     </div>
                 </div>
-            </aside>
-            {
-              hideSidebar ?
-              <button onClick={hideSidebarFn} className="rounded-full flex justify-center items-center w-10 h-10 border-black border-2 absolute bottom-[1rem] left-2"><Image src={SeeImg} alt="see" width={25} height={25} /></button>
-              :
-              <button type="button" onClick={hideSidebarFn} className={`flex font-semibold absolute bottom-[4.5rem] left-8 gap-3 items-center size-fit mt-2 py-2 pr-20 pl-16 -m-16 rounded-3xl hover:opacity-80 ${mode === "dark" ? "hover:bg-gray-600" : "hover:bg-gray-300"}`}><Image src={HideImg} alt="hide" width={25} height={25} />Hide Sidebar</button>
-            }
+                <IconButton 
+                className={`font-semibold text-lg absolute bottom-[4.5rem] left-8 py-2 pr-20 pl-16 -m-16 rounded-3xl hover:opacity-80 ${mode === "dark" ? "hover:bg-gray-600" : "hover:bg-gray-300"}`}
+                onClick={hideDrawer}
+                >
+                  <button className="flex items-center gap-3" type="button"><Image src={HideImg} alt="hide" width={25} height={25} />Hide Sidebar</button>
+                </IconButton>
+            </Drawer>
 
-            <div className={`cDiv font-bold flex items-center justify-between p-5 border-b border-l border-gray-500 w-[78vw] h-[15vh] ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+            <IconButton onClick={hideDrawer} className="rounded-full flex justify-center items-center w-10 h-10 absolute bottom-[1rem] left-2 hover:bg-gray-600 z-10">
+              <Image src={SeeImg} alt="see" width={25} height={25} />
+            </IconButton>
+
+            <Box className={`cDiv absolute top-0 right-0 font-bold flex items-center justify-between p-5 border-b border-l border-gray-500 w-[78vw] h-[15vh] ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <h1 className={`text-xl ${mode === "dark" ? "text-white" : "text-black"}`}>Platform Launch</h1>
                 <div className="flex gap-3 items-center">
-                    <button className="bg-button font-bold text-base p-3 px-4 rounded-3xl" onClick={() => {setShowAddNewTask(!showAddNewTask); setShowDarkBackground(!showDarkBackground)}}>+ Add New Task</button>
-                    <div className="dropdown">
-                        <button className="text-gray-600 text-2xl">&#8942;</button>
-                        <div className="dropdown-content">
-                            <span>Delete Board</span>
-                            <span>Change Board</span>
-                            <span>Delete Column</span>
-                        </div>
-                    </div>
+                    <button className="bg-button font-bold text-base p-3 px-4 rounded-3xl" onClick={() => {setShowAddNewTask(!showAddNewTask)}}>+ Add New Task</button>
+                    <Box>
+                      <Button onClick={() => setShowDropdown(!showDropdown)} className="dropdown">
+                        <MoreVertIcon />
+                      </Button>
+                      <Menu
+                        open={showDropdown}
+                        anchorEl={document.querySelector(".dropdown")}
+                        hideBackdrop
+                      >
+                        <MenuItem>Delete Board</MenuItem>
+                        <MenuItem>Update Board</MenuItem>
+                        <MenuItem>Delete Column</MenuItem>
+                      </Menu>
+                    </Box>
                 </div>
-            </div>
+            </Box>
 
-            <div className="main-content h-[80vh] pl-4 pt-4 flex gap-6">
+            <Box className="main-content w-[78vw] absolute top-[15vh] left-[22vw] h-[80vh] pl-4 pt-4 flex gap-6">
                 <Column mode={mode} userID={1} name="To Do" />
                 <button className={`h-full w-[22vw] font-bold ${mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
-            </div>
+            </Box>
 
           {
             showAddNewTask ? 
@@ -278,10 +281,6 @@ export default function UserPage({ params }: { params: { user: string } }) {
           }
 
           {
-            showDarkBackground ?  <span className="absolute top-0 left-0 w-screen h-screen bg-black opacity-50" onClick={() => {setShowAddNewTask(false); setShowDarkBackground(false); setShowBoardCreation(false)}}></span> : null
-          }
-
-          {
             showBoardCreation ? 
             <div className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-[30vh] left-[35vw] z-10 rounded-md ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
               <Input placeholder="Board Name" type="text" id="boardName" name="boardName" />
@@ -290,6 +289,6 @@ export default function UserPage({ params }: { params: { user: string } }) {
             :
             null
           }
-        </main>
+        </Box>
     );
 }
