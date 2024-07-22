@@ -65,23 +65,25 @@ export default function Task ({mode} : {mode: "light" | "dark"}) {
 
                         <div className="flex flex-col gap-2">
                             <FormControl>
-                                <InputLabel id="Status">Status</InputLabel>
+                                <InputLabel id="Status" variant="standard" style={{color: "gray", fontWeight: "600", padding: "0.2rem"}}>Status</InputLabel>
                                 <Select 
                                 label="Status" 
                                 name="status" 
                                 id="statusSelect"
                                 value={status}
                                 onChange={handleSelectChange}
+                                variant="standard"
                                 sx={{
-                                    backgroundColor: `${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`,
-                                    color: `${mode === "dark" ? "text-white" : "text-black"}`,
-                                    fontWeight: "bold",
+                                    "& .MuiSelect-standard": {
+                                    backgroundColor: "rgba(255, 255, 255, 0.05)",
+                                    color: "gray",
+                                    fontWeight: "600",
+                                    padding: "0.5rem",
+                                    }  
                                 }}
                                 >
-                                    <MenuItem value="">None</MenuItem>
-                                    <MenuItem value="todo" className={`text-gray-400 font-semibold p-1 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>To Do</MenuItem>
-                                    <MenuItem value="inprogress" className={`text-gray-400 font-semibold p-1 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>In Progress</MenuItem>
-                                    <MenuItem value="done" className={`text-gray-400 font-semibold p-1 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>Done</MenuItem>
+                                    <MenuItem value="" style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>None</MenuItem>
+                                    <MenuItem value="todo" style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>To Do</MenuItem>
                                 </Select>
                             </FormControl>
                         </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Button, Drawer, IconButton, Menu, MenuItem, Modal, styled, Switch } from "@mui/material";
+import { Box, Button, Drawer, FormControl, IconButton, InputLabel, Menu, MenuItem, Modal, Select, SelectChangeEvent, styled, Switch } from "@mui/material";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import anime from 'animejs/lib/anime.es.js';
 import Image from "next/image";
@@ -8,7 +8,7 @@ import SunImg from "@/utils/images/sun.png";
 import MoonImg from "@/utils/images/moon.png";
 import HideImg from "@/utils/images/hide.png";
 import SeeImg from "@/utils/images/see.png";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Column from "@/components/Column";
 import { Input } from "@/utils/Tags/Input";
 import { useRouter } from "next/navigation";
@@ -25,6 +25,7 @@ import { createTask } from "@/utils/requests/Task";
 import { User } from "@/utils/requests/User";
 import { Table } from "@/utils/requests/Table";
 import { Column as ColumnType } from "@/utils/requests/Column";
+import { Textarea } from "@/utils/Tags/Textarea";
 export default function UserPage({ params }: { params: { user: string } }) {
     const [mode, setMode] = useState<"light" | "dark">(
         typeof window !== "undefined" ? localStorage.getItem("theme") as ("light" | "dark") : "dark"
@@ -38,7 +39,9 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const [showDrawer, setShowDrawer] = useState(true);
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedTable, setSelectedTable] = useState<Table>();
+    const [status, setStatus] = useState<string>("");
     const router = useRouter();
+    const hasMounted = useRef(false);
 
     useEffect(() => {
       const token = localStorage.getItem('token');
@@ -62,11 +65,14 @@ export default function UserPage({ params }: { params: { user: string } }) {
           setColumns(columns);
       }
 
-      fetchUser();
-      if (user) {
-          
-          //fetchBoards(user.id);
-          //fetchColumns(boards[0].id);
+      if (!hasMounted.current) {
+        fetchUser();
+        if (user) {
+            //fetchBoards(user.id);
+            //fetchColumns(boards[0].id);
+            hasMounted.current = true;
+        }
+        
       }
 
     }, []);
@@ -166,6 +172,10 @@ export default function UserPage({ params }: { params: { user: string } }) {
       }
     }
 
+    function handleSelectChange(e : SelectChangeEvent)  {
+      setStatus(e.target.value);
+  }
+
     return (
         <Box className="kanban-template">
             <Drawer
@@ -201,12 +211,12 @@ export default function UserPage({ params }: { params: { user: string } }) {
                         <AntSwitch checked={mode === "dark" ? true : false} onClick={toggleMode} />
                         <Image src={MoonImg} alt="moon" width={20} height={20} />
                     </Box>
-                    <IconButton onClick={hideDrawer} >
+                    <button onClick={hideDrawer} >
                       <Box className={`flex items-center gap-3 font-semibold py-2 pr-20 pl-16 -m-16 mt-[0.5rem] rounded-3xl hover:opacity-80 ${mode === "dark" ? "hover:bg-gray-600" : "hover:bg-gray-300"}`}>
                         <Image src={HideImg} alt="hide" width={25} height={25} />
                         <span className="text-lg">Hide Sidebar</span>
                       </Box>
-                    </IconButton>
+                    </button>
                 </Box>
               </Box>
             </Drawer>
@@ -250,12 +260,28 @@ export default function UserPage({ params }: { params: { user: string } }) {
                 <form className="flex flex-col gap-3">
                   <Box className="flex flex-col gap-2">
                     <label htmlFor="title" className={`font-semibold text-sm ${mode === "dark" ? "text-white" : "text-black"}`}>Title</label>
-                    <Input placeholder="e.g: Take a coffee" type="text" id="title" name="title" className="w-full font-semibold" />  
+                    <Input placeholder="e.g: Take a coffee" type="text" id="title" name="title" />  
                   </Box>
                   
                   <Box className="flex flex-col gap-2">
                     <label htmlFor="description" className={`font-semibold text-sm ${mode === "dark" ? "text-white" : "text-black"}`}>Description</label>
-                    <textarea placeholder="e.g: Always good to take a break" name="description" id="description" rows={4} className="resize-none text-gray-400 text-sm p-2 rounded w-full input-border"></textarea>
+                    <Textarea 
+                    placeholder="e.g: Always good to take a break" name="description" id="description" rows={4} 
+                    sx={{
+                      "& .MuiInputBase-input": {
+                        color: "gray",
+                        fontWeight: "600",
+                        backgroundColor: "rgba(255, 255, 255, 0.05)",
+                        padding: "0.5rem",
+                        fontSize: "0.9rem",
+                      },
+                      "& .MuiInput-underline:before": {
+                          borderBottomColor: "gray",
+                      },
+                      "& .MuiInput-underline:after": {
+                          borderBottomColor: "gray",
+                      },
+                    }} />
                   </Box>
                   
                   <Box className="flex flex-col gap-2">
@@ -274,12 +300,28 @@ export default function UserPage({ params }: { params: { user: string } }) {
                   </Box>
                   
                   <Box className="flex flex-col gap-2">
-                    <label htmlFor="status" className={`font-semibold text-sm ${mode === "dark" ? "text-white" : "text-black"}`}>Status</label>
-                    <select name="status" id="status" className="w-full font-semibold input-border rounded p-1 text-gray-400">
-                      <option value="todo" className={`text-gray-400 font-semibold p-1 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>To Do</option>
-                      <option value="inprogress" className={`text-gray-400 font-semibold p-1 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>In Progress</option>
-                      <option value="done" className={`text-gray-400 font-semibold p-1 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>Done</option>
-                    </select>
+                    <FormControl>
+                      <InputLabel id="Status" variant="standard" style={{color: "gray", fontWeight: "600", padding: "0.2rem"}}>Status</InputLabel>
+                      <Select 
+                      label="Status" 
+                      name="status" 
+                      id="statusSelect"
+                      value={status}
+                      onChange={handleSelectChange}
+                      variant="standard"
+                      sx={{
+                        "& .MuiSelect-standard": {
+                          backgroundColor: "rgba(255, 255, 255, 0.05)",
+                          color: "gray",
+                          fontWeight: "600",
+                          padding: "0.5rem",
+                        }  
+                      }}
+                      >
+                          <MenuItem value="" style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>None</MenuItem>
+                          <MenuItem value="todo" style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>To Do</MenuItem>
+                      </Select>
+                    </FormControl>
                   </Box>
                   <button className="bg-button font-bold text-base p-2 rounded-3xl w-full">Create Task</button>
                 </form>

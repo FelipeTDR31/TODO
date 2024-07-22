@@ -1,9 +1,25 @@
-export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
+import { TextField, TextFieldProps } from "@mui/material";
+
+export const Input = (props: TextFieldProps) => {
     return (
-        <input
+        <TextField
             {...props}
+            variant="standard"
             required
-            className={`rounded text-gray-400 p-1 text-base w-72 input-border ${props.className}`}
+            sx={{
+                "& .MuiInputBase-input": {
+                    color: "gray",
+                    fontWeight: "600",
+                    backgroundColor: "rgba(255, 255, 255, 0.05)",
+                    padding: "0.5rem",
+                },
+                "& .MuiInput-underline:before": {
+                    borderBottomColor: "gray",
+                },
+                "& .MuiInput-underline:after": {
+                    borderBottomColor: "gray",
+                },
+            }}
         />
     );
 };
