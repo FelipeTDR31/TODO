@@ -37,32 +37,37 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const [showBoardCreation, setShowBoardCreation] = useState(false);
     const [showDrawer, setShowDrawer] = useState(true);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [selectedTable, setSelectedTable] = useState<Table>();
     const router = useRouter();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            router.back();
-        }
+      const token = localStorage.getItem('token');
+      if (!token) {
+          router.back();
+      }
 
-        async function fetchUser() {
-            const user = await getUser(params.user);
-            setUser(user);
-        }
+      async function fetchUser() {
+          const user = await getUser(params.user);
+          setUser(user);
+          createTable("Default Board", user.id);
+      }
 
-        async function fetchBoards(userID : number) {
-            const boards = await getTables(userID);
-            setBoards(boards);
-        }
+      async function fetchBoards(userID : number) {
+          const boards = await getTables(userID);
+          setBoards(boards);
+      }
 
-        async function fetchColumns(tableID : number) {
-            const columns = await getColumns(tableID);
-            setColumns(columns);
-        }
+      async function fetchColumns(tableID : number) {
+          const columns = await getColumns(tableID);
+          setColumns(columns);
+      }
 
-        fetchUser();
-       // fetchBoards(user!.id);
-       // fetchColumns(boards[0].id);
+      fetchUser();
+      if (user) {
+          
+          //fetchBoards(user.id);
+          //fetchColumns(boards[0].id);
+      }
 
     }, []);
 
@@ -125,18 +130,10 @@ export default function UserPage({ params }: { params: { user: string } }) {
       }));
 
     const createBoard = async () => {
-      //const board = await createTable(user!.name)
-      const boards = document.querySelector("#boards")
-      const newBoard = document.createElement("button")
-      for (let i = 0; i < boards!.children.length; i++) {
-        const child = boards?.children[i];
-        if (child?.classList.contains("chosen-board")) {
-          child?.classList.remove("chosen-board");
-        }
-      }
-      newBoard.className = "chosen-board py-2 pl-10 pr-24 -ml-10 rounded-3xl hover:opacity-90"
-      newBoard.innerHTML = "NEW BOARD"
-      boards?.insertBefore(newBoard, boards.firstChild);
+      const boardName = document.getElementById("boardName") as HTMLInputElement
+      const name = boardName.value
+      const board = await createTable(name,user!.id)
+      setBoards([...boards, board])
       setShowBoardCreation(false);
     }
 
@@ -180,9 +177,22 @@ export default function UserPage({ params }: { params: { user: string } }) {
                 <h3 className={`text-3xl -ml-3 -mt-8 ${mode === "dark" ? "text-white" : "text-black"}`}>{params.user} Kanban</h3>
                 <Box>
                     <h4 className="text-gray-400 text-sm">Your Boards {"()"}</h4>
-                    <Box className="mt-2" id="boards">
-                        <button className="chosen-board py-2 pl-10 pr-24 -ml-10 rounded-3xl hover:opacity-90">Default Board</button>
-                        <button className="create-board py-2 pl-7 -ml-7 hover:opacity-90" onClick={() => {setShowBoardCreation(true)}}>+Create New Board</button>
+                    <Box className="mt-2 flex flex-col" id="boards">
+                        {
+                            boards.map((board, index) => {
+                              let lastElement = boards.length -1
+                              if (index === lastElement) {
+                                return(
+                                  <button id={board.id.toString()} key={index} className="chosen-board text-lg py-2 pl-10 pr-24 -ml-10 rounded-3xl hover:opacity-90">{board.name}</button>
+                                )
+                              }else{
+                                return(
+                                  <button id={board.id.toString()} key={index} className="text-lg py-2 pl-10 pr-24 -ml-10 rounded-3xl hover:opacity-90">{board.name}</button>
+                                )
+                              }
+                            })
+                        }
+                        <button className="create-board text-lg py-2 pl-7 -ml-7 hover:opacity-90" onClick={() => {setShowBoardCreation(true)}}>+Create New Board</button>
                     </Box>
                 </Box>
                 <Box>
@@ -227,7 +237,6 @@ export default function UserPage({ params }: { params: { user: string } }) {
             </Box>
 
             <Box className="main-content w-[78vw] absolute top-[15vh] left-[22vw] h-[80vh] pl-4 pt-4 flex gap-6">
-                <Column mode={mode} userID={1} name="To Do" />
                 <button className={`h-full w-[22vw] font-bold ${mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
             </Box>
 

@@ -14,7 +14,8 @@ export default function RegisterPage() {
             password: string
         };
         const response = await register(username, email, password);
-        console.log(response);
+        localStorage.setItem('token', response.token);
+        router.push(`/${response.user.name}`);
     };
 
     return (

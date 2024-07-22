@@ -1,4 +1,5 @@
 import axios from "axios";
+import { User } from "./User";
 
 export interface Table {
     id: number;
@@ -8,7 +9,7 @@ export interface Table {
 
 export const getTables = async (userId: number) : Promise<Table[]> => {
     return axios
-        .get("http://localhost:5002/api/Table")
+        .get("http://localhost:5002/api/tables/" + userId)
         .then((response) => {
             return response.data;
         });
@@ -37,9 +38,16 @@ export const updateTable = async (id: number, name: string) : Promise<Table> => 
 }
 
 
-export const createTable = async (name: string) : Promise<Table> => {
+export const createTable = async (name: string, userId: number) : Promise<Table> => {
     return axios
         .post("http://localhost:5002/api/Table", {
-            name
-        })
+            name,
+            userId
+        },
+        {
+            headers:{
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+        }
+    )
 }

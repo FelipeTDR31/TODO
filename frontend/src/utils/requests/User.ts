@@ -9,41 +9,37 @@ export interface User {
     tables?: Table[];
 }
 
-export const login = async (email: string, password: string) : Promise<boolean> => {
+export const login = async (email: string, password: string) : Promise<{ token: string, foundUser: User }> => {
     return axios
         .post("http://localhost:5002/api/User/login", {
             email,
             password,
         })
         .then((response) => {
-            return response.data;
+            return { token: response.data.token, foundUser: response.data.foundUser };
         });
 }
 
 
-export const register = async (name: string, email: string, password: string) : Promise<string> => {
+export const register = async (name: string, email: string, password: string) : Promise<{token: string, user: User}> => {
     return axios
-        .post("http://localhost:5002/api/User", {
+        .post("http://localhost:5002/api/User/register", {
             name,
             email,
             password,
         })
         .then((response) => {
-            return response.data;
+            return { token: response.data.token, user: response.data.user };
         });
 }
 
-export const getUsers = async () : Promise<User[]> => {
+export const getUser = async (name : string ) : Promise<User> => {
     return axios
-        .get("http://localhost:5002/api/User")
-        .then((response) => {
-            return response.data;
-        });
-}
-
-export const getUser = async (name : string) : Promise<User> => {
-    return axios
-        .get(`http://localhost:5002/api/User/${name}`)
+        .get(`http://localhost:5002/api/User/${name}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
+        })
         .then((response) => {
             return response.data;
         });
