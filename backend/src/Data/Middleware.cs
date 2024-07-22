@@ -16,7 +16,7 @@ namespace backend.Data
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (context.Request.Path.HasValue && context.Request.Path.Value.StartsWith("/api/User/"))
+            if (context.Request.Path.HasValue && context.Request.Path.Value=="/api/User/register" || context.Request.Path.HasValue && context.Request.Path.Value=="/api/User/login")
             {
                 await _next(context);
             }

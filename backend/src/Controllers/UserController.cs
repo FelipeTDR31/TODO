@@ -36,20 +36,6 @@ namespace backend.Controllers
             return user;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<User>> CreateUser(User user)
-        {
-            if (_context.User.Any(u => u.Name == user.Name))
-            {
-                return Conflict();
-            }
-
-            _context.User.Add(user);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
-        }
-
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, User user)
         {
@@ -107,6 +93,23 @@ namespace backend.Controllers
             var token = tokenGenerator.GenerateToken(foundUser);
 
             return Ok(new { token, foundUser });
+        }
+
+        [HttpPost("register")]
+        public async Task<ActionResult<User>> Register(User user)
+        {
+            if (_context.User.Any(u => u.Name == user.Name))
+            {
+                return Conflict();
+            }
+
+            _context.User.Add(user);
+            await _context.SaveChangesAsync();
+
+            var tokenGenerator = new TokenGenerator();
+            var token = tokenGenerator.GenerateToken(user);
+
+            return Ok(new { user, token });
         }
 
         private bool UserExists(int id)

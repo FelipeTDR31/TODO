@@ -8,7 +8,7 @@ namespace backend.Models
         public string Description { get; set; } = string.Empty;
         public int Order { get; set; }
         public int ColumnId { get; set; }
-        public required Column Column { get; set; } 
+        public virtual Column? Column { get; set; } 
         public ICollection<Subtask>? Substasks { get; set; }
     }
 }

@@ -16,10 +16,17 @@ namespace backend.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Table>>> GetTables()
+        [HttpGet("tables/{userId}")]
+        public async Task<ActionResult<IEnumerable<Table>>> GetTablesByUserId(int userId)
         {
-            return await _context.Table.ToListAsync();
+            var tables = await _context.Table.Where(t => t.UserId == userId).ToListAsync();
+
+            if (!tables.Any())
+            {
+                return NotFound();
+            }
+
+            return tables;
         }
 
         [HttpGet("{id}")]

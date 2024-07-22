@@ -9,7 +9,7 @@ namespace backend.Data
 {
     public class TokenGenerator
     {
-        private readonly SymmetricSecurityKey securityKey;
+        private static SymmetricSecurityKey? securityKey;
 
         public TokenGenerator()
         {
@@ -20,7 +20,39 @@ namespace backend.Data
 
         internal static bool ValidateToken(string token, ApplicationContext contextData)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = tokenHandler.ReadJwtToken(token).ToString();
+                var validationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = securityKey,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    LifetimeValidator = (notBefore, expires, securityToken, validationParameters) =>
+                    {
+                        if (expires != null)
+                        {
+                            return expires > DateTime.UtcNow;
+                        }
+                        return false;
+                    }
+                };
+
+                var principal = tokenHandler.ValidateToken(jwtToken, validationParameters, out var validatedToken);
+                if (principal.Identity!=null && principal.Identity.IsAuthenticated)
+                {
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                // do nothing
+            }
+
+            return false;
         }
 
         public string GenerateToken(User user)

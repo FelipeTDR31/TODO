@@ -7,6 +7,6 @@ namespace backend.Models
         public string Description { get; set; } = string.Empty;
         public bool IsDone { get; set; }
         public int TaskId { get; set; }
-        public required Task Task { get; set; }
+        public virtual Task? Task { get; set; }
     }
 }

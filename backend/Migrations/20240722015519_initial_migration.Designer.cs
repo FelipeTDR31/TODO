@@ -11,7 +11,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20240714233204_initial_migration")]
+    [Migration("20240722015519_initial_migration")]
     partial class initial_migration
     {
         /// <inheritdoc />
@@ -23,6 +23,28 @@ namespace backend.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("Table", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Table");
+                });
 
             modelBuilder.Entity("backend.Models.Column", b =>
                 {
@@ -72,28 +94,6 @@ namespace backend.Migrations
                     b.HasIndex("TaskId");
 
                     b.ToTable("Subtask");
-                });
-
-            modelBuilder.Entity("backend.Models.Table", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Table");
                 });
 
             modelBuilder.Entity("backend.Models.Task", b =>
@@ -150,9 +150,20 @@ namespace backend.Migrations
                     b.ToTable("User");
                 });
 
+            modelBuilder.Entity("Table", b =>
+                {
+                    b.HasOne("backend.Models.User", "User")
+                        .WithMany("Tables")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("backend.Models.Column", b =>
                 {
-                    b.HasOne("backend.Models.Table", "Table")
+                    b.HasOne("Table", "Table")
                         .WithMany("Columns")
                         .HasForeignKey("TableId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -172,17 +183,6 @@ namespace backend.Migrations
                     b.Navigation("Task");
                 });
 
-            modelBuilder.Entity("backend.Models.Table", b =>
-                {
-                    b.HasOne("backend.Models.User", "User")
-                        .WithMany("Tables")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("backend.Models.Task", b =>
                 {
                     b.HasOne("backend.Models.Column", "Column")
@@ -194,14 +194,14 @@ namespace backend.Migrations
                     b.Navigation("Column");
                 });
 
+            modelBuilder.Entity("Table", b =>
+                {
+                    b.Navigation("Columns");
+                });
+
             modelBuilder.Entity("backend.Models.Column", b =>
                 {
                     b.Navigation("Tasks");
-                });
-
-            modelBuilder.Entity("backend.Models.Table", b =>
-                {
-                    b.Navigation("Columns");
                 });
 
             modelBuilder.Entity("backend.Models.Task", b =>
