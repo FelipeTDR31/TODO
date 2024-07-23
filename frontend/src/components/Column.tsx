@@ -1,6 +1,9 @@
 import { Input } from '@/utils/Tags/Input';
 import { useState, useEffect } from 'react';
 import Task from './Task';
+import { Box } from '@mui/material';
+import interact from "interactjs";
+import { InteractEvent } from '@interactjs/types';
 
 export default function Column({mode, name, userID} : {mode: 'light' | 'dark', name?: string, userID: number}) {
     const [input, setInput] = useState('');
@@ -24,12 +27,30 @@ export default function Column({mode, name, userID} : {mode: 'light' | 'dark', n
         }
     }, [input]);
 
+    interact(".taskDropzone").dropzone({
+        ondragenter: (event : InteractEvent) => {
+            event.target.classList.add('bg-blue-400');
+        }
+        ,ondragleave: (event : InteractEvent) => {
+            event.target.classList.remove('bg-blue-400');
+        },
+        ondrop: (event : InteractEvent) => {
+            event.preventDefault();
+            const task = event.relatedTarget?.parentElement;
+            if (task) {
+                event.target.appendChild(task);
+                event.target.classList.remove('bg-blue-400');
+            }
+        }
+    })
+
     return (
-        <div className={`h-full w-[22vw]`}>
+        <Box className={`h-full w-[22vw]`}>
             {title ? <h1 className={`font-bold text-lg flex items-center -mt-12 ${mode === 'dark' ? 'text-gray-400' : 'text-black'}`}><span className={`text-8xl mb-6`} style={{color: `#${Math.floor(Math.random() * 16777215).toString(16)}`}}>&#8226;</span>{title} {"()"}</h1> : <Input type="text" className='w-[12vw]' value={input} onChange={(e) => setInput(e.target.value)} />}
-            <div className={`w-full -mt-6 gap-6`}>
-                <Task mode={mode} />
-            </div>  
-        </div>
+            <Box className={`w-full min-h-[60vh] max-h-full -mt-6 flex flex-col gap-6 taskDropzone`}>
+                <Task mode={mode} name='SOMETHING AAAA' />
+                <Task mode={mode} name='SOMETHING BBBB' />
+            </Box>  
+        </Box>
     )
 }

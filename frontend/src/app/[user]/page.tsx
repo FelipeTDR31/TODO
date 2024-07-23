@@ -46,7 +46,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
     useEffect(() => {
       const token = localStorage.getItem('token');
       if (!token) {
-          router.back();
+          //router.back();
       }
 
       async function fetchUser() {
@@ -247,6 +247,8 @@ export default function UserPage({ params }: { params: { user: string } }) {
             </Box>
 
             <Box className="main-content w-[78vw] absolute top-[15vh] left-[22vw] h-[80vh] pl-4 pt-4 flex gap-6">
+                <Column mode={mode} name="To Do" userID={1} />
+                <Column mode={mode} name="In Progress" userID={1} />
                 <button className={`h-full w-[22vw] font-bold ${mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
             </Box>
 
