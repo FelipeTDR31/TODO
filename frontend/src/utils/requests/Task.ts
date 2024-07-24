@@ -20,7 +20,11 @@ export const getTasks = async (ColumnId: number) : Promise<Task[]> => {
 
 export const getTask = async (id: number) : Promise<Task> => {
     return axios
-        .get(`http://localhost:5002/api/Task/${id}`)
+        .get(`http://localhost:5002/api/Task/${id}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
+        })
         .then((response) => {
             return response.data;
         });
@@ -34,6 +38,10 @@ export const createTask = async (name : string, description : string, columnId :
             columnId,
             order,
             subtasks
+        }, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
         })
         .then((response) => {
             return response.data;
@@ -45,6 +53,10 @@ export const updateTask = async (id: number, name : string, description : string
         .put(`http://localhost:5002/api/Task/${id}`, {
             name,
             description
+        }, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
         })
         .then((response) => {
             return response.data;
@@ -53,7 +65,11 @@ export const updateTask = async (id: number, name : string, description : string
 
 export const deleteTask = async (id: number) => {
     return axios
-        .delete(`http://localhost:5002/api/Task/${id}`)
+        .delete(`http://localhost:5002/api/Task/${id}`,{
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
+        })
         .then((response) => {
             return response.data;
         });

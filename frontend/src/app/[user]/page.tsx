@@ -26,19 +26,20 @@ import { User } from "@/utils/requests/User";
 import { Table } from "@/utils/requests/Table";
 import { Column as ColumnType } from "@/utils/requests/Column";
 import { Textarea } from "@/utils/Tags/Textarea";
+import { createRoot, hydrateRoot } from "react-dom/client";
+import ReactDOM from "react-dom";
 export default function UserPage({ params }: { params: { user: string } }) {
     const [mode, setMode] = useState<"light" | "dark">(
         typeof window !== "undefined" ? localStorage.getItem("theme") as ("light" | "dark") : "dark"
     );
     const [showAddNewTask, setShowAddNewTask] = useState(false);
-    const [user, setUser] = useState<User>();
+    const [user, setUser] = useState<User | null>(null);
     const [boards, setBoards] = useState<Table[]>([]);
     const [columns, setColumns] = useState<ColumnType[]>([]);
     const [numberOfSubtasks, setNumberOfSubtasks] = useState(1);
     const [showBoardCreation, setShowBoardCreation] = useState(false);
     const [showDrawer, setShowDrawer] = useState(true);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [selectedTable, setSelectedTable] = useState<Table>();
     const [status, setStatus] = useState<string>("");
     const router = useRouter();
     const hasMounted = useRef(false);
@@ -46,13 +47,12 @@ export default function UserPage({ params }: { params: { user: string } }) {
     useEffect(() => {
       const token = localStorage.getItem('token');
       if (!token) {
-          //router.back();
+          //router.push("/login");
       }
 
       async function fetchUser() {
           const user = await getUser(params.user);
           setUser(user);
-          createTable("Default Board", user.id);
       }
 
       async function fetchBoards(userID : number) {
@@ -67,15 +67,17 @@ export default function UserPage({ params }: { params: { user: string } }) {
 
       if (!hasMounted.current) {
         fetchUser();
-        if (user) {
-            //fetchBoards(user.id);
-            //fetchColumns(boards[0].id);
+        if (user!=null) {
+            fetchBoards(user.id);
+            if (boards.length > 0) {
+                fetchColumns(boards[boards.length - 1].id);
+            }
             hasMounted.current = true;
         }
         
       }
 
-    }, []);
+    }, [user]);
 
     const toggleMode = (e : any) => {
         const newMode = mode === "light" ? "dark" : "light";
@@ -139,8 +141,10 @@ export default function UserPage({ params }: { params: { user: string } }) {
       const boardName = document.getElementById("boardName") as HTMLInputElement
       const name = boardName.value
       const board = await createTable(name,user!.id)
-      setBoards([...boards, board])
-      setShowBoardCreation(false);
+      if (board) {
+        setBoards([...boards, board]);
+        setShowBoardCreation(false);
+      }
     }
 
     function hideDrawer() {
@@ -176,6 +180,14 @@ export default function UserPage({ params }: { params: { user: string } }) {
       setStatus(e.target.value);
   }
 
+  function addColumn() {
+    let column = <Column mode={mode} boardId={boards[boards.length - 1].id} />
+    let root = document.querySelector("#root")
+    if (root) {
+      createRoot(root).render(column);
+    }
+  }
+
   async function CreateTask() {
     const taskName = document.getElementById("title") as HTMLInputElement;
     const name = taskName.value;
@@ -208,24 +220,26 @@ export default function UserPage({ params }: { params: { user: string } }) {
              >
               <Box className={`aside-content flex flex-col justify-around p-6 font-bold w-[22vw] h-screen ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <h3 className={`text-3xl -ml-3 -mt-8 ${mode === "dark" ? "text-white" : "text-black"}`}>{params.user} Kanban</h3>
-                <Box>
+                <Box className="flex flex-col h-1/2">
                     <h4 className="text-gray-400 text-sm">Your Boards {"()"}</h4>
-                    <Box className="mt-2 flex flex-col" id="boards">
-                        {
-                            boards.map((board, index) => {
-                              let lastElement = boards.length -1
-                              if (index === lastElement) {
-                                return(
-                                  <button id={board.id.toString()} key={index} className="chosen-board text-lg py-2 pl-10 pr-24 -ml-10 rounded-3xl hover:opacity-90">{board.name}</button>
-                                )
-                              }else{
-                                return(
-                                  <button id={board.id.toString()} key={index} className="text-lg py-2 pl-10 pr-24 -ml-10 rounded-3xl hover:opacity-90">{board.name}</button>
-                                )
-                              }
-                            })
-                        }
-                        <button className="create-board text-lg py-2 pl-7 -ml-7 hover:opacity-90" onClick={() => {setShowBoardCreation(true)}}>+Create New Board</button>
+                    <Box className="flex flex-col h-4/5 mt-2">
+                      <Box className={`flex flex-col-reverse gap-2 p-3 overflow-auto scrollbar-hidden min-h-1/4 max-h-full rounded-md ${mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`} id="boards">
+                          {
+                              boards.map((board, index) => {
+                                let lastElement = boards.length -1
+                                if (index === lastElement) {
+                                  return(
+                                    <button id={board.id.toString()} key={index} className={`chosen-board text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{board.name}</button>
+                                  )
+                                }else{
+                                  return(
+                                    <button id={board.id.toString()} key={index} className={`text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{board.name}</button>
+                                  )
+                                }
+                              })
+                          }
+                      </Box>
+                      <button className="create-board text-lg py-2 pl-7 -ml-7 hover:opacity-90" onClick={() => {setShowBoardCreation(true)}}>+Create New Board</button>
                     </Box>
                 </Box>
                 <Box>
@@ -270,9 +284,22 @@ export default function UserPage({ params }: { params: { user: string } }) {
             </Box>
 
             <Box className="main-content w-[78vw] absolute top-[15vh] left-[22vw] h-[80vh] pl-4 pt-4 flex gap-6">
-                <Column mode={mode} name="To Do" userID={1} />
-                <Column mode={mode} name="In Progress" userID={1} />
-                <button className={`h-full w-[22vw] font-bold ${mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
+                {
+                  columns.map((column, index) => {
+                    if (column.TableID == boards[boards.length - 1].id) {
+                      return(
+                        <Column
+                          key={index}
+                          name={column.name}
+                          mode={mode}
+                          boardId={column.TableID}
+                        />
+                      )
+                    }
+                  })
+                }
+                <span id="root"></span>
+                <button onClick={addColumn} className={`h-full w-[22vw] font-bold ${mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
             </Box>
 
             <Modal
@@ -359,7 +386,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
               keepMounted
             >
               <Box className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-[30vh] left-[35vw] z-10 rounded-md ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
-                <Input placeholder="Board Name" type="text" id="boardName" name="boardName" />
+                <Input placeholder="Board Name" type="text" id="boardName" name="boardName" className="w-[20rem]" onKeyDown={(e) => {e.key === "Enter" ? createBoard() : null}} />
                 <button onClick={createBoard} className="bg-button font-bold text-base p-2 rounded-3xl w-full">Create Board</button>
               </Box>
             </Modal>

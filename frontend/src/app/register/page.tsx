@@ -1,6 +1,7 @@
 'use client'
 
 import { Input } from "@/utils/Tags/Input";
+import { createTable } from "@/utils/requests/Table";
 import { register } from "@/utils/requests/User";
 import { useRouter } from "next/navigation";
 
@@ -15,6 +16,7 @@ export default function RegisterPage() {
         };
         const response = await register(username, email, password);
         localStorage.setItem('token', response.token);
+        createTable("Default Board", response.user.id);
         router.push(`/${response.user.name}`);
     };
 

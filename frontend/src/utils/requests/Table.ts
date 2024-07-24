@@ -9,7 +9,11 @@ export interface Table {
 
 export const getTables = async (userId: number) : Promise<Table[]> => {
     return axios
-        .get("http://localhost:5002/api/tables/" + userId)
+        .get(`http://localhost:5002/api/Table/tables/${userId}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
+        })
         .then((response) => {
             return response.data;
         });
@@ -17,7 +21,11 @@ export const getTables = async (userId: number) : Promise<Table[]> => {
 
 export const getTable = async (id: number) : Promise<Table> => {
     return axios
-        .get(`http://localhost:5002/api/Table/${id}`)
+        .get(`http://localhost:5002/api/Table/${id}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
+        })
         .then((response) => {
             return response.data;
         });
@@ -26,7 +34,13 @@ export const getTable = async (id: number) : Promise<Table> => {
 
 export const deleteTable = async (id: number) => {
     return axios
-        .delete(`http://localhost:5002/api/Table/${id}`)
+        .delete(`http://localhost:5002/api/Table/${id}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
+        }).then((response) => {
+            return response.data;
+        });
 }
 
 
@@ -34,7 +48,13 @@ export const updateTable = async (id: number, name: string) : Promise<Table> => 
     return axios
         .put(`http://localhost:5002/api/Table/${id}`, {
             name
-        })
+        },{
+            headers:{
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+        }).then((response) => {
+            return response.data;
+        });
 }
 
 
@@ -49,5 +69,7 @@ export const createTable = async (name: string, userId: number) : Promise<Table>
                 Authorization: `Bearer ${localStorage.getItem("token")}`
             }
         }
-    )
+    ).then((response) => {
+        return response.data;
+    });
 }
