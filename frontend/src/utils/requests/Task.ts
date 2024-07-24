@@ -26,12 +26,14 @@ export const getTask = async (id: number) : Promise<Task> => {
         });
 }
 
-export const createTask = async (name : string, description : string, ColumnId : number) : Promise<Task> => {
+export const createTask = async (name : string, description : string, columnId : number, order: number, subtasks?: Subtask[]) : Promise<Task> => {
     return axios
         .post("http://localhost:5002/api/Task", {
             name,
             description,
-            ColumnId
+            columnId,
+            order,
+            subtasks
         })
         .then((response) => {
             return response.data;

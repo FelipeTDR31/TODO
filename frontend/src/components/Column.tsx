@@ -4,6 +4,7 @@ import Task from './Task';
 import { Box } from '@mui/material';
 import interact from "interactjs";
 import { InteractEvent } from '@interactjs/types';
+import { createColumn } from '@/utils/requests/Column';
 
 export default function Column({mode, name, userID} : {mode: 'light' | 'dark', name?: string, userID: number}) {
     const [input, setInput] = useState('');
@@ -43,6 +44,10 @@ export default function Column({mode, name, userID} : {mode: 'light' | 'dark', n
             }
         }
     })
+
+    async function CreateColumn() {
+        await createColumn(input, 1, tableID);
+    }
 
     return (
         <Box className={`h-full w-[22vw]`}>

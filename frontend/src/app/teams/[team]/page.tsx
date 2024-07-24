@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { getUser } from "@/utils/requests/User";
 import { getTables } from "@/utils/requests/Table";
 import { getColumns } from "@/utils/requests/Column";
-import { getSubtasks, Subtask } from "@/utils/requests/Subtask";
+import { getSubtasks } from "@/utils/requests/Subtask";
 import { getTasks } from "@/utils/requests/Task";
 import { createTable } from "@/utils/requests/Table";
 import { createColumn } from "@/utils/requests/Column";
@@ -26,12 +26,13 @@ import { User } from "@/utils/requests/User";
 import { Table } from "@/utils/requests/Table";
 import { Column as ColumnType } from "@/utils/requests/Column";
 import { Textarea } from "@/utils/Tags/Textarea";
-export default function UserPage({ params }: { params: { user: string } }) {
+export default function UserPage({ params }: { params: { team: string } }) {
     const [mode, setMode] = useState<"light" | "dark">(
         typeof window !== "undefined" ? localStorage.getItem("theme") as ("light" | "dark") : "dark"
     );
     const [showAddNewTask, setShowAddNewTask] = useState(false);
-    const [user, setUser] = useState<User>();
+    const [team, setTeam] = useState<User>();
+    const [user, setUser] = useState<User[]>();
     const [boards, setBoards] = useState<Table[]>([]);
     const [columns, setColumns] = useState<ColumnType[]>([]);
     const [numberOfSubtasks, setNumberOfSubtasks] = useState(1);
@@ -49,9 +50,9 @@ export default function UserPage({ params }: { params: { user: string } }) {
           //router.back();
       }
 
-      async function fetchUser() {
-          const user = await getUser(params.user);
-          setUser(user);
+      async function fetchTeam() {
+          const user = await getUser(params.team);
+          setTeam(team);
           createTable("Default Board", user.id);
       }
 
@@ -66,8 +67,8 @@ export default function UserPage({ params }: { params: { user: string } }) {
       }
 
       if (!hasMounted.current) {
-        fetchUser();
-        if (user) {
+        fetchTeam();
+        if (team) {
             //fetchBoards(user.id);
             //fetchColumns(boards[0].id);
             hasMounted.current = true;
@@ -138,7 +139,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const createBoard = async () => {
       const boardName = document.getElementById("boardName") as HTMLInputElement
       const name = boardName.value
-      const board = await createTable(name,user!.id)
+      const board = await createTable(name,team!.id)
       setBoards([...boards, board])
       setShowBoardCreation(false);
     }
@@ -176,29 +177,6 @@ export default function UserPage({ params }: { params: { user: string } }) {
       setStatus(e.target.value);
   }
 
-  async function CreateTask() {
-    const taskName = document.getElementById("title") as HTMLInputElement;
-    const name = taskName.value;
-    const taskDescription = document.getElementById("description") as HTMLInputElement;
-    const description = taskDescription.value;
-    const subtasks = document.querySelectorAll(".subtaskInput") as NodeListOf<HTMLInputElement>;
-    let subtaskArray : Subtask[] = [];
-    for (let i = 0; i < subtasks.length; i++) {
-      const subtask = subtasks[i];
-      subtaskArray.push({
-        id: i + 1,
-        description: subtask.value,
-        isDone: false,
-        taskID: 1
-      })
-    }
-    const columnID = document.getElementById("statusSelect") as HTMLSelectElement;
-    const column = columnID.value;
-    const order = 1;
-    const task = await createTask(name, description, Number(column), order, subtaskArray);
-    setShowAddNewTask(false);
-  }
-
     return (
         <Box className="kanban-template">
             <Drawer
@@ -207,7 +185,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
              onClose={hideDrawer}
              >
               <Box className={`aside-content flex flex-col justify-around p-6 font-bold w-[22vw] h-screen ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
-                <h3 className={`text-3xl -ml-3 -mt-8 ${mode === "dark" ? "text-white" : "text-black"}`}>{params.user} Kanban</h3>
+                <h3 className={`text-3xl -ml-3 -mt-8 ${mode === "dark" ? "text-white" : "text-black"}`}>{params.team} Kanban</h3>
                 <Box>
                     <h4 className="text-gray-400 text-sm">Your Boards {"()"}</h4>
                     <Box className="mt-2 flex flex-col" id="boards">
@@ -249,7 +227,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
             </button>
 
             <Box className={`cBox absolute top-0 right-0 font-bold flex items-center justify-between p-5 border-b border-l border-gray-500 w-[78vw] h-[15vh] ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
-                <h1 className={`text-xl ${mode === "dark" ? "text-white" : "text-black"}`}>Platform Launch</h1>
+                <h1 className={`text-xl ${mode === "dark" ? "text-white" : "text-black"}`}>Connected Users:</h1>
                 <Box className="flex gap-3 items-center">
                     <button className="bg-button font-bold text-base p-3 px-4 rounded-3xl" onClick={() => {setShowAddNewTask(!showAddNewTask)}}>+ Add New Task</button>
                     <Box>
