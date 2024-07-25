@@ -19,7 +19,6 @@ import { getSubtasks, Subtask } from "@/utils/requests/Subtask";
 import { getTasks } from "@/utils/requests/Task";
 import { createTable } from "@/utils/requests/Table";
 import { updateColumn } from "@/utils/requests/Column";
-import { createSubtask } from "@/utils/requests/Subtask";
 import { createTask } from "@/utils/requests/Task";
 import { User } from "@/utils/requests/User";
 import { Table } from "@/utils/requests/Table";
@@ -197,21 +196,23 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const taskDescription = document.getElementById("description") as HTMLInputElement;
     const description = taskDescription.value;
     const subtasks = document.querySelectorAll(".subtasksInput") as NodeListOf<HTMLInputElement>;
-    let subtaskArray : Subtask[] = [];
+    console.log(subtasks)
+    let subtasksArray : Subtask[] = [];
     for (let i = 0; i < subtasks.length; i++) {
-      const subtask = subtasks[i];
-      subtaskArray.push({
-        id: i + 1,
-        description: subtask.value,
+      const e = subtasks[i].firstChild?.firstChild as HTMLInputElement;
+
+      subtasksArray.push({
+        description: e.value,
         isDone: false,
-        taskId: 1
+        id: 0,
+        taskId: 0
       })
     }
-    console.log(subtaskArray)
+    console.log(subtasksArray)
     console.log(status)
     const order = 1;
-    const task = await createTask(name, description, Number(status), order, subtaskArray);
-      const taskElement = <Task mode={mode} name={task.name} description={task.description} subtasks={task.subtasks}  />;
+    const response = await createTask(name, description, Number(status), order, subtasksArray);
+      const taskElement = <Task mode={mode} name={response.task.name} description={response.task.description} subtasks={response.subtasks}  />;
       let columnElement = document.querySelector(`#column-${status}`)?.children[1];
       console.log(columnElement)
       let root = document.createElement("span")

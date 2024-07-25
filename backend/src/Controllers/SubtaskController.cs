@@ -45,6 +45,16 @@ namespace backend.Controllers
             return CreatedAtAction(nameof(GetSubtask), new { id = subtask.Id }, subtask);
         }
 
+        
+        [HttpPost("many")]
+        public async Task<ActionResult<List<Subtask>>> PostManySubtask(IEnumerable<Subtask> subtasks)
+        {
+            _context.Subtask.AddRange(subtasks);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetSubtask), new { id = subtasks.First().Id }, subtasks);
+        }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutSubtask(int id, Subtask subtask)
         {

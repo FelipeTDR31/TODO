@@ -9,6 +9,6 @@ namespace backend.Models
         public int Order { get; set; }
         public int ColumnId { get; set; }
         public virtual Column? Column { get; set; } 
-        public ICollection<Subtask>? Substasks { get; set; }
+        public ICollection<Subtask>? Subtasks { get; set; }
     }
 }

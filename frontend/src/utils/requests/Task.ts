@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Subtask } from "./Subtask";
+import { createSubtasks, Subtask } from "./Subtask";
 
 export interface Task{
     id: number;
@@ -34,21 +34,24 @@ export const getTask = async (id: number) : Promise<Task> => {
         });
 }
 
-export const createTask = async (name : string, description : string, columnId : number, order: number, subtasks?: Subtask[]) : Promise<Task> => {
+export const createTask = async (name : string, description : string, columnId : number, order: number, subtasksArray: Subtask[]) : Promise<{task: Task, subtasks: Subtask[]}> => {
     return axios
         .post("http://localhost:5002/api/Task", {
             name,
             description,
             columnId,
-            order,
-            subtasks
+            order
         }, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             }
         })
-        .then((response) => {
-            return response.data;
+        .then(async (response) => {
+            const subtasks = await createSubtasks(response.data.id, subtasksArray);
+            return {
+                task: response.data,
+                subtasks
+            };
         });
 }
 

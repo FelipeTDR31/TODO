@@ -67,7 +67,9 @@ export default function Column({mode, name, boardId, columnId} : {mode: 'light' 
             <Box className={`w-full min-h-[60vh] max-h-full -mt-6 flex flex-col gap-6 taskDropzone`}>
                 {
                     tasks.map((task) => {
+                        if(task.columnId == columnId) {
                         return <Task mode={mode} key={task.id} name={task.name} description={task.description} subtasks={task.subtasks} />
+                        }
                     })
                 }
             </Box>  
