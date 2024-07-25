@@ -4,7 +4,7 @@ export interface Subtask {
     id: number;
     description: string;
     isDone: boolean;
-    taskID: number;
+    taskId: number;
 }
 
 export const getSubtasks = async (taskID: number) : Promise<Subtask[]> => {

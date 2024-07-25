@@ -5,14 +5,18 @@ export interface Task{
     id: number;
     name: string;
     description: string;
-    Order: number;
-    ColumnId: number;
+    order: number;
+    columnId: number;
     subtasks?: Subtask[];
 }
 
 export const getTasks = async (ColumnId: number) : Promise<Task[]> => {
     return axios
-        .get("http://localhost:5002/api/Task")
+        .get("http://localhost:5002/api/Task", {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
+        })
         .then((response) => {
             return response.data;
         });

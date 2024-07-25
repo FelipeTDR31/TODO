@@ -5,7 +5,7 @@ export interface Column {
     id: number;
     name: string;
     position: number;
-    TableID : number;
+    tableId : number;
     tasks?: Task[];
 }
 

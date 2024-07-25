@@ -18,7 +18,6 @@ import { getColumns } from "@/utils/requests/Column";
 import { getSubtasks, Subtask } from "@/utils/requests/Subtask";
 import { getTasks } from "@/utils/requests/Task";
 import { createTable } from "@/utils/requests/Table";
-import { createColumn } from "@/utils/requests/Column";
 import { updateColumn } from "@/utils/requests/Column";
 import { createSubtask } from "@/utils/requests/Subtask";
 import { createTask } from "@/utils/requests/Task";
@@ -28,6 +27,7 @@ import { Column as ColumnType } from "@/utils/requests/Column";
 import { Textarea } from "@/utils/Tags/Textarea";
 import { createRoot, hydrateRoot } from "react-dom/client";
 import ReactDOM from "react-dom";
+import Task from "@/components/Task";
 export default function UserPage({ params }: { params: { user: string } }) {
     const [mode, setMode] = useState<"light" | "dark">(
         typeof window !== "undefined" ? localStorage.getItem("theme") as ("light" | "dark") : "dark"
@@ -36,6 +36,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const [user, setUser] = useState<User | null>(null);
     const [boards, setBoards] = useState<Table[]>([]);
     const [columns, setColumns] = useState<ColumnType[]>([]);
+    const [selectedTable, setSelectedTable] = useState<Table | null>(null);
     const [numberOfSubtasks, setNumberOfSubtasks] = useState(1);
     const [showBoardCreation, setShowBoardCreation] = useState(false);
     const [showDrawer, setShowDrawer] = useState(true);
@@ -57,6 +58,8 @@ export default function UserPage({ params }: { params: { user: string } }) {
 
       async function fetchBoards(userID : number) {
           const boards = await getTables(userID);
+          setSelectedTable(boards[boards.length - 1]);
+          fetchColumns(boards[boards.length - 1].id);
           setBoards(boards);
       }
 
@@ -69,9 +72,6 @@ export default function UserPage({ params }: { params: { user: string } }) {
         fetchUser();
         if (user!=null) {
             fetchBoards(user.id);
-            if (boards.length > 0) {
-                fetchColumns(boards[boards.length - 1].id);
-            }
             hasMounted.current = true;
         }
         
@@ -181,8 +181,11 @@ export default function UserPage({ params }: { params: { user: string } }) {
   }
 
   function addColumn() {
+    console.log(columns)
     let column = <Column mode={mode} boardId={boards[boards.length - 1].id} />
-    let root = document.querySelector("#root")
+    let mainContent = document.querySelector(".main-content")
+    let root = document.createElement("span")
+    mainContent?.insertBefore(root, mainContent.lastChild)
     if (root) {
       createRoot(root).render(column);
     }
@@ -193,7 +196,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const name = taskName.value;
     const taskDescription = document.getElementById("description") as HTMLInputElement;
     const description = taskDescription.value;
-    const subtasks = document.querySelectorAll(".subtaskInput") as NodeListOf<HTMLInputElement>;
+    const subtasks = document.querySelectorAll(".subtasksInput") as NodeListOf<HTMLInputElement>;
     let subtaskArray : Subtask[] = [];
     for (let i = 0; i < subtasks.length; i++) {
       const subtask = subtasks[i];
@@ -201,13 +204,22 @@ export default function UserPage({ params }: { params: { user: string } }) {
         id: i + 1,
         description: subtask.value,
         isDone: false,
-        taskID: 1
+        taskId: 1
       })
     }
-    const columnID = document.getElementById("statusSelect") as HTMLSelectElement;
-    const column = columnID.value;
+    console.log(subtaskArray)
+    console.log(status)
     const order = 1;
-    const task = await createTask(name, description, Number(column), order, subtaskArray);
+    const task = await createTask(name, description, Number(status), order, subtaskArray);
+      const taskElement = <Task mode={mode} name={task.name} description={task.description} subtasks={task.subtasks}  />;
+      let columnElement = document.querySelector(`#column-${status}`)?.children[1];
+      console.log(columnElement)
+      let root = document.createElement("span")
+      columnElement?.appendChild(root)
+      if (root) {
+        createRoot(root).render(taskElement);
+      }
+    
     setShowAddNewTask(false);
   }
 
@@ -286,19 +298,19 @@ export default function UserPage({ params }: { params: { user: string } }) {
             <Box className="main-content w-[78vw] absolute top-[15vh] left-[22vw] h-[80vh] pl-4 pt-4 flex gap-6">
                 {
                   columns.map((column, index) => {
-                    if (column.TableID == boards[boards.length - 1].id) {
+                    if (column.tableId == selectedTable!.id) {
                       return(
                         <Column
                           key={index}
                           name={column.name}
                           mode={mode}
-                          boardId={column.TableID}
+                          boardId={column.tableId}
+                          columnId={column.id}
                         />
                       )
                     }
                   })
                 }
-                <span id="root"></span>
                 <button onClick={addColumn} className={`h-full w-[22vw] font-bold ${mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
             </Box>
 
@@ -348,7 +360,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
                         ))
                       }
                     </Box>
-                    <button className="bg-button font-bold text-base p-2 rounded-3xl w-full" onClick={() => setNumberOfSubtasks(numberOfSubtasks + 1)}>+ Add New Subtask</button>
+                    <button type="button" className="bg-button font-bold text-base p-2 rounded-3xl w-full" onClick={() => setNumberOfSubtasks(numberOfSubtasks + 1)}>+ Add New Subtask</button>
                   </Box>
                   
                   <Box className="flex flex-col gap-2">
@@ -370,12 +382,17 @@ export default function UserPage({ params }: { params: { user: string } }) {
                         }  
                       }}
                       >
-                          <MenuItem value="" style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>None</MenuItem>
-                          <MenuItem value="todo" style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>To Do</MenuItem>
+                          {
+                            columns.map((column) => {
+                              return (
+                                <MenuItem value={column.id} style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>{column.name}</MenuItem>
+                              )
+                            })
+                          }
                       </Select>
                     </FormControl>
                   </Box>
-                  <button className="bg-button font-bold text-base p-2 rounded-3xl w-full">Create Task</button>
+                  <button type="button" className="bg-button font-bold text-base p-2 rounded-3xl w-full" onClick={CreateTask}>Create Task</button>
                 </form>
               </Box>
             </Modal>

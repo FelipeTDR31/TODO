@@ -5,8 +5,9 @@ import React, { useState } from "react";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import interact from "interactjs";
 import { InteractEvent } from "@interactjs/types";
+import { Subtask } from "@/utils/requests/Subtask";
 
-export default function Task ({mode, name, description, subtasks} : {mode: "light" | "dark", name: string, description?: string, subtasks?: string[]}) {
+export default function Task ({mode, name, description, subtasks} : {mode: "light" | "dark", name: string, description?: string, subtasks?: Subtask[]}) {
     const [showDetails, setShowDetails] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false)
     const [checked, setChecked] = useState(false);
@@ -40,6 +41,7 @@ export default function Task ({mode, name, description, subtasks} : {mode: "ligh
             event.target.style.transform = `translate(0px, 0px)`
             position.x = 0
             position.y = 0
+            
         }
     }).styleCursor(false)
     return (
