@@ -9,8 +9,8 @@ import { Subtask } from "@/utils/requests/Subtask";
 
 export default function Task ({mode, name, description, subtasks} : {mode: "light" | "dark", name: string, description?: string, subtasks?: Subtask[]}) {
     const [showDetails, setShowDetails] = useState(false);
-    const [showDropdown, setShowDropdown] = useState(false)
-    const [checked, setChecked] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [checked, setChecked] = useState(subtasks?.map(subtask => subtask.isDone) || []);
     const [status, setStatus] = useState("");
     const position = {x: 0, y: 0}
 
@@ -72,15 +72,21 @@ export default function Task ({mode, name, description, subtasks} : {mode: "ligh
                                 </Box>
                             </div>
 
-                            <p className={`text-sm ${mode === "dark" ? "text-gray-400" : "text-black"}`}>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt, vitae ipsa error dolores ab ducimus quis dicta sequi possimus non alias sapiente velit fugiat soluta, enim illo tempore quo? Quam.</p>
+                            <p className={`text-sm ${mode === "dark" ? "text-gray-400" : "text-black"}`}>{description}</p>
 
                             <div className="flex flex-col gap-2">
                                 <h3 className={`text-sm font-semibold ${mode === "dark" ? "text-white" : "text-black"}`}>Subtasks {"()"}</h3>
                                 <div className={`flex flex-col gap-1 text-sm font-semibold ${mode === "dark" ? "text-white" : "text-black"}`}>
-                                    <div className={`flex items-center gap-2 rounded p-2 ${mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`}>
-                                        <Checkbox checked={checked} onChange={setSubTaskDone}  />
-                                        <label id="label">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quo, nostrum pariatur saepe omnis voluptates porro cum quas non magnam</label>
-                                    </div>
+                                    {
+                                        subtasks?.map((subtask, index) => {
+                                            return (
+                                                <div key={index} className={`flex items-center gap-2 rounded p-2 ${mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`}>
+                                                    <Checkbox checked={checked[index]} onChange={setSubTaskDone}  />
+                                                    <label id={`label-${index}`}>{subtask.description}</label>
+                                                </div>
+                                            )
+                                        })
+                                    }
                                 </div>
                             </div>
 

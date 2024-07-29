@@ -31,20 +31,11 @@ export const getSubtask = async (id: number) : Promise<Subtask> => {
         });
 }
 
-export const createSubtasks = async (taskID: number, subtasks: Subtask[]) : Promise<Subtask[]> => {
-    subtasks.forEach((subtask) => subtask.taskId = taskID);
-    const descriptions = subtasks.map((subtask) => subtask.description);
-    let a;
-    subtasks.forEach((subtask) => a.push({
-        taskId: subtask.taskId,
-        description: subtask.description,
-        isDone: subtask.isDone
-    }));
-    
+export const createSubtask = async (taskID: number, description: string) : Promise<Subtask> => {
     return axios
-    
-        .post("http://localhost:5002/api/Subtask/many", {
-            a
+        .post("http://localhost:5002/api/Subtask", {
+            taskID,
+            description
         }, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { createSubtasks, Subtask } from "./Subtask";
+import { createSubtask, Subtask } from "./Subtask";
 
 export interface Task{
     id: number;
@@ -47,7 +47,10 @@ export const createTask = async (name : string, description : string, columnId :
             }
         })
         .then(async (response) => {
-            const subtasks = await createSubtasks(response.data.id, subtasksArray);
+            const subtasks : Subtask[] = [];
+            subtasksArray.forEach(async (subtask) => {
+                subtasks.push(await createSubtask(response.data.id, subtask.description));
+            })
             return {
                 task: response.data,
                 subtasks

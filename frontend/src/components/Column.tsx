@@ -37,7 +37,8 @@ export default function Column({mode, name, boardId, columnId} : {mode: 'light' 
             }else{
                 setTitle(name);
                 const tasks = await getTasks(columnId!);
-                setTasks(tasks);
+                setTasks(tasks.$values);
+                console.log(tasks);
             }
         }
 
