@@ -1,10 +1,10 @@
 import axios from "axios";
 
 export interface Subtask {
-    id: number;
-    description: string;
-    isDone: boolean;
-    taskId: number;
+    Id: number;
+    Description: string;
+    IsDone: boolean;
+    TaskId: number;
 }
 
 export const getSubtasks = async (taskID: number) : Promise<Subtask[]> => {

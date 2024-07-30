@@ -2,12 +2,12 @@ import axios from "axios";
 import { createSubtask, Subtask } from "./Subtask";
 
 export interface Task{
-    id: number;
-    name: string;
-    description: string;
-    order: number;
-    columnId: number;
-    subtasks?: Subtask[];
+    Id: number;
+    Name: string;
+    Description: string;
+    Order: number;
+    ColumnId: number;
+    Subtasks?: Subtask[];
 }
 
 export const getTasks = async (ColumnId: number) : Promise<Task[]> => {
@@ -18,7 +18,7 @@ export const getTasks = async (ColumnId: number) : Promise<Task[]> => {
             }
         })
         .then((response) => {
-            return response.data;
+            return response.data.$values;
         });
 }
 
@@ -49,7 +49,7 @@ export const createTask = async (name : string, description : string, columnId :
         .then(async (response) => {
             const subtasks : Subtask[] = [];
             subtasksArray.forEach(async (subtask) => {
-                subtasks.push(await createSubtask(response.data.id, subtask.description));
+                subtasks.push(await createSubtask(response.data.id, subtask.Description));
             })
             return {
                 task: response.data,

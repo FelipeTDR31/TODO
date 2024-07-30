@@ -1,7 +1,7 @@
 'use client'
 
 import { Box, Button, Checkbox, FormControl, InputLabel, Menu, MenuItem, Modal, Select, SelectChangeEvent } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import interact from "interactjs";
 import { InteractEvent } from "@interactjs/types";
@@ -10,19 +10,24 @@ import { Subtask } from "@/utils/requests/Subtask";
 export default function Task ({mode, name, description, subtasks} : {mode: "light" | "dark", name: string, description?: string, subtasks?: Subtask[]}) {
     const [showDetails, setShowDetails] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [checked, setChecked] = useState(subtasks?.map(subtask => subtask.isDone) || []);
+    const [checked, setChecked] = useState(subtasks?.map(subtask => subtask.IsDone) || []);
     const [status, setStatus] = useState("");
     const position = {x: 0, y: 0}
 
     function setSubTaskDone(e: React.ChangeEvent<HTMLInputElement>) {
-        setChecked(e.currentTarget.checked);
-        let label = document.querySelector('#label')
-        if (!checked) {
-            label?.classList.add("line-through")
-            label?.classList.add("text-gray-400")
-        }else{
-            label?.classList.remove("line-through")
-            label?.classList.remove("text-gray-400")
+        e.preventDefault();
+        let id = e.currentTarget.id.split("-")[1];
+        let index = subtasks?.indexOf(subtasks?.find(subtask => subtask.Id == Number(id))!);
+        if (index !== undefined) {
+            const newChecked = [...checked];
+            newChecked[index] = !newChecked[index];
+            console.log(newChecked)
+            console.log(checked)
+            const label = document.querySelector(`#label-${id}`);
+            if (label) {
+                label.classList.toggle("line-through", newChecked[index]);
+                label.classList.toggle("text-gray-400", newChecked[index]);
+            }
         }
     }
 
@@ -76,13 +81,14 @@ export default function Task ({mode, name, description, subtasks} : {mode: "ligh
 
                             <div className="flex flex-col gap-2">
                                 <h3 className={`text-sm font-semibold ${mode === "dark" ? "text-white" : "text-black"}`}>Subtasks {"()"}</h3>
-                                <div className={`flex flex-col gap-1 text-sm font-semibold ${mode === "dark" ? "text-white" : "text-black"}`}>
+                                <div id="subtasksContainer" className={`flex flex-col gap-1 text-sm font-semibold ${mode === "dark" ? "text-white" : "text-black"}`}>
                                     {
-                                        subtasks?.map((subtask, index) => {
+                                        checked?.map((checked, index) => {
+                                            let subtask = subtasks![index];
                                             return (
                                                 <div key={index} className={`flex items-center gap-2 rounded p-2 ${mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`}>
-                                                    <Checkbox checked={checked[index]} onChange={setSubTaskDone}  />
-                                                    <label id={`label-${index}`}>{subtask.description}</label>
+                                                    <Checkbox id={`subtask-${subtask.Id}`} checked={checked} onChange={setSubTaskDone}  />
+                                                    <label id={`label-${subtask.Id}`}>{subtask.Description}</label>
                                                 </div>
                                             )
                                         })
