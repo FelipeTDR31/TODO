@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using backend.Data;
@@ -18,11 +19,12 @@ namespace backend.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Models.Task>>> GetTasks()
+        [HttpGet("{columnId}")]
+        public async Task<ActionResult<IEnumerable<Models.Task>>> GetTasks(int columnId)
         {
             var tasks = await _context.Task
                 .Include(t => t.Subtasks)
+                .Where(t => t.ColumnId == columnId)
                 .ToListAsync();
             var options = new JsonSerializerOptions
             {
@@ -31,10 +33,10 @@ namespace backend.Controllers
             return Ok(JsonSerializer.Serialize(tasks, options));
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Models.Task>> GetTask(int id)
+        [HttpGet("{columnId}/{taskId}")]
+        public async Task<ActionResult<Models.Task>> GetTask(int taskId, int columnId)
         {
-            var task = await _context.Task.FindAsync(id);
+            var task = await _context.Task.Where(t => t.Id == taskId && t.ColumnId == columnId).FirstOrDefaultAsync();
 
             if (task == null)
             {
@@ -49,8 +51,12 @@ namespace backend.Controllers
         {
             _context.Task.Add(task);
             await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
+            var returnedTask = CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
+             var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.Preserve
+            };
+            return Ok(JsonSerializer.Serialize(returnedTask, options));
         }
 
         [HttpPut("{id}")]

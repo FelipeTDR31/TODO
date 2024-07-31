@@ -17,17 +17,17 @@ namespace backend.Controllers
         }
 
         // GET: api/Column
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Column>>> GetColumns()
+        [HttpGet("{tableId}")]
+        public async Task<ActionResult<IEnumerable<Column>>> GetColumns(int tableId)
         {
             return await _context.Column.ToListAsync();
         }
 
         // GET: api/Column/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Column>> GetColumn(int id)
+        [HttpGet("{tableId}/{columnId}")]
+        public async Task<ActionResult<Column>> GetColumn(int tableId, int columnId)
         {
-            var column = await _context.Column.FindAsync(id);
+            var column = await _context.Column.Where(x => x.TableId == tableId && x.Id == columnId).FirstOrDefaultAsync();
 
             if (column == null)
             {

@@ -8,33 +8,28 @@ import SunImg from "@/utils/images/sun.png";
 import MoonImg from "@/utils/images/moon.png";
 import HideImg from "@/utils/images/hide.png";
 import SeeImg from "@/utils/images/see.png";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import Column from "@/components/Column";
 import { Input } from "@/utils/Tags/Input";
 import { useRouter } from "next/navigation";
 import { getUser } from "@/utils/requests/User";
 import { getTables } from "@/utils/requests/Table";
 import { getColumns } from "@/utils/requests/Column";
-import { getSubtasks, Subtask } from "@/utils/requests/Subtask";
-import { getTasks } from "@/utils/requests/Task";
+import { Subtask } from "@/utils/requests/Subtask";
 import { createTable } from "@/utils/requests/Table";
-import { updateColumn } from "@/utils/requests/Column";
 import { createTask } from "@/utils/requests/Task";
 import { User } from "@/utils/requests/User";
 import { Table } from "@/utils/requests/Table";
 import { Column as ColumnType } from "@/utils/requests/Column";
 import { Textarea } from "@/utils/Tags/Textarea";
 import { createRoot, hydrateRoot } from "react-dom/client";
-import ReactDOM from "react-dom";
 import Task from "@/components/Task";
+import { ModeContext } from "@/components/Context";
 export default function UserPage({ params }: { params: { user: string } }) {
-    const [mode, setMode] = useState<"light" | "dark">(
-        typeof window !== "undefined" ? localStorage.getItem("theme") as ("light" | "dark") : "dark"
-    );
+    const context = useContext(ModeContext);
     const [showAddNewTask, setShowAddNewTask] = useState(false);
     const [user, setUser] = useState<User | null>(null);
     const [boards, setBoards] = useState<Table[]>([]);
-    const [columns, setColumns] = useState<ColumnType[]>([]);
     const [selectedTable, setSelectedTable] = useState<Table | null>(null);
     const [numberOfSubtasks, setNumberOfSubtasks] = useState(1);
     const [showBoardCreation, setShowBoardCreation] = useState(false);
@@ -43,7 +38,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const [status, setStatus] = useState<string>("");
     const router = useRouter();
     const hasMounted = useRef(false);
-
+    
     useEffect(() => {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -64,7 +59,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
 
       async function fetchColumns(tableID : number) {
           const columns = await getColumns(tableID);
-          setColumns(columns);
+          context!.setColumns(columns);
       }
 
       if (!hasMounted.current) {
@@ -79,9 +74,9 @@ export default function UserPage({ params }: { params: { user: string } }) {
     }, [user]);
 
     const toggleMode = (e : any) => {
-        const newMode = mode === "light" ? "dark" : "light";
+        const newMode = context!.mode === "light" ? "dark" : "light";
         const body = document.querySelector("body");
-        setMode(newMode);
+        context!.setMode(newMode);
         localStorage.setItem("theme", newMode);
         if (newMode === "dark") {
             e.currentTarget.checked = true;
@@ -114,7 +109,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
             color: '#fff',
             '& + .MuiSwitch-track': {
               opacity: 1,
-              backgroundColor: mode === 'dark' ? '#177ddc' : '#1890ff',
+              backgroundColor: context!.mode === 'dark' ? '#177ddc' : '#1890ff',
             },
           },
         },
@@ -131,7 +126,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
           borderRadius: 32 / 2,
           opacity: 1,
           backgroundColor:
-            mode === 'dark' ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.25)',
+          context!.mode === 'dark' ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.25)',
           boxSizing: 'border-box',
         },
       }));
@@ -180,8 +175,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
   }
 
   function addColumn() {
-    console.log(columns)
-    let column = <Column mode={mode} boardId={boards[boards.length - 1].id} />
+    let column = <Column mode={context!.mode} boardId={boards[boards.length - 1].id} />
     let mainContent = document.querySelector(".main-content")
     let root = document.createElement("span")
     mainContent?.insertBefore(root, mainContent.lastChild)
@@ -202,19 +196,16 @@ export default function UserPage({ params }: { params: { user: string } }) {
       const e = subtasks[i].firstChild?.firstChild as HTMLInputElement;
 
       subtasksArray.push({
-        description: e.value,
-        isDone: false,
-        id: 0,
-        taskId: 0
+        Description: e.value,
+        IsDone: false,
+        Id: 0,
+        TaskId: 0
       })
     }
-    console.log(subtasksArray)
-    console.log(status)
     const order = 1;
     const response = await createTask(name, description, Number(status), order, subtasksArray);
-      const taskElement = <Task mode={mode} name={response.task.name} description={response.task.description} subtasks={response.subtasks}  />;
+      const taskElement = <Task mode={context!.mode} name={response.Name} description={response.Description} subtasks={response.Subtasks}  />;
       let columnElement = document.querySelector(`#column-${status}`)?.children[1];
-      console.log(columnElement)
       let root = document.createElement("span")
       columnElement?.appendChild(root)
       if (root) {
@@ -231,22 +222,22 @@ export default function UserPage({ params }: { params: { user: string } }) {
              anchor="left"
              onClose={hideDrawer}
              >
-              <Box className={`aside-content flex flex-col justify-around p-6 font-bold w-[22vw] h-screen ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
-                <h3 className={`text-3xl -ml-3 -mt-8 ${mode === "dark" ? "text-white" : "text-black"}`}>{params.user} Kanban</h3>
+              <Box className={`aside-content flex flex-col justify-around p-6 font-bold w-[22vw] h-screen ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+                <h3 className={`text-3xl -ml-3 -mt-8 ${context!.mode === "dark" ? "text-white" : "text-black"}`}>{params.user} Kanban</h3>
                 <Box className="flex flex-col h-1/2">
                     <h4 className="text-gray-400 text-sm">Your Boards {"()"}</h4>
                     <Box className="flex flex-col h-4/5 mt-2">
-                      <Box className={`flex flex-col-reverse gap-2 p-3 overflow-auto scrollbar-hidden min-h-1/4 max-h-full rounded-md ${mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`} id="boards">
+                      <Box className={`flex flex-col-reverse gap-2 p-3 overflow-auto scrollbar-hidden min-h-1/4 max-h-full rounded-md ${context!.mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`} id="boards">
                           {
                               boards.map((board, index) => {
                                 let lastElement = boards.length -1
                                 if (index === lastElement) {
                                   return(
-                                    <button id={board.id.toString()} key={index} className={`chosen-board text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{board.name}</button>
+                                    <button id={board.id.toString()} key={index} className={`chosen-board text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{board.name}</button>
                                   )
                                 }else{
                                   return(
-                                    <button id={board.id.toString()} key={index} className={`text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{board.name}</button>
+                                    <button id={board.id.toString()} key={index} className={`text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{board.name}</button>
                                   )
                                 }
                               })
@@ -256,13 +247,13 @@ export default function UserPage({ params }: { params: { user: string } }) {
                     </Box>
                 </Box>
                 <Box>
-                    <Box className={`flex gap-3 items-center size-fit rounded-md py-2 px-16 ${mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`}>
+                    <Box className={`flex gap-3 items-center size-fit rounded-md py-2 px-16 ${context!.mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`}>
                         <Image src={SunImg} alt="sun" width={25} height={25} />
-                        <AntSwitch checked={mode === "dark" ? true : false} onClick={toggleMode} />
+                        <AntSwitch checked={context!.mode === "dark" ? true : false} onClick={toggleMode} />
                         <Image src={MoonImg} alt="moon" width={20} height={20} />
                     </Box>
                     <button onClick={hideDrawer} >
-                      <Box className={`flex items-center gap-3 font-semibold py-2 pr-20 pl-16 -m-16 mt-[0.5rem] rounded-3xl hover:opacity-80 ${mode === "dark" ? "hover:bg-gray-600" : "hover:bg-gray-300"}`}>
+                      <Box className={`flex items-center gap-3 font-semibold py-2 pr-20 pl-16 -m-16 mt-[0.5rem] rounded-3xl hover:opacity-80 ${context!.mode === "dark" ? "hover:bg-gray-600" : "hover:bg-gray-300"}`}>
                         <Image src={HideImg} alt="hide" width={25} height={25} />
                         <span className="text-lg">Hide Sidebar</span>
                       </Box>
@@ -275,8 +266,8 @@ export default function UserPage({ params }: { params: { user: string } }) {
               <Image src={SeeImg} alt="see" width={25} height={25} />
             </button>
 
-            <Box className={`cBox absolute top-0 right-0 font-bold flex items-center justify-between p-5 border-b border-l border-gray-500 w-[78vw] h-[15vh] ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
-                <h1 className={`text-xl ${mode === "dark" ? "text-white" : "text-black"}`}>Platform Launch</h1>
+            <Box className={`cBox absolute top-0 right-0 font-bold flex items-center justify-between p-5 border-b border-l border-gray-500 w-[78vw] h-[15vh] ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+                <h1 className={`text-xl ${context!.mode === "dark" ? "text-white" : "text-black"}`}>Platform Launch</h1>
                 <Box className="flex gap-3 items-center">
                     <button className="bg-button font-bold text-base p-3 px-4 rounded-3xl" onClick={() => {setShowAddNewTask(!showAddNewTask)}}>+ Add New Task</button>
                     <Box>
@@ -298,13 +289,13 @@ export default function UserPage({ params }: { params: { user: string } }) {
 
             <Box className="main-content w-[78vw] absolute top-[15vh] left-[22vw] h-[80vh] pl-4 pt-4 flex gap-6">
                 {
-                  columns.map((column, index) => {
+                  context!.columns.map((column, index) => {
                     if (column.tableId == selectedTable!.id) {
                       return(
                         <Column
                           key={index}
                           name={column.name}
-                          mode={mode}
+                          mode={context!.mode}
                           boardId={column.tableId}
                           columnId={column.id}
                         />
@@ -312,7 +303,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
                     }
                   })
                 }
-                <button onClick={addColumn} className={`h-full w-[22vw] font-bold ${mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
+                <button onClick={addColumn} className={`h-full w-[22vw] font-bold ${context!.mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
             </Box>
 
             <Modal
@@ -320,16 +311,16 @@ export default function UserPage({ params }: { params: { user: string } }) {
               onClose={() => setShowAddNewTask(false)}
               keepMounted
             >
-              <Box className={`flex flex-col p-5 gap-4 absolute top-[5vh] left-[35vw] w-[30vw] h-[90vh] z-10 rounded-md ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
-                <h1 className={`font-semibold text-xl ${mode === "dark" ? "text-white" : "text-black"}`}>New Task</h1>
+              <Box className={`flex flex-col p-5 gap-4 absolute top-[5vh] left-[35vw] w-[30vw] h-[90vh] z-10 rounded-md ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+                <h1 className={`font-semibold text-xl ${context!.mode === "dark" ? "text-white" : "text-black"}`}>New Task</h1>
                 <form className="flex flex-col gap-3">
                   <Box className="flex flex-col gap-2">
-                    <label htmlFor="title" className={`font-semibold text-sm ${mode === "dark" ? "text-white" : "text-black"}`}>Title</label>
+                    <label htmlFor="title" className={`font-semibold text-sm ${context!.mode === "dark" ? "text-white" : "text-black"}`}>Title</label>
                     <Input placeholder="e.g: Take a coffee" type="text" id="title" name="title" />  
                   </Box>
                   
                   <Box className="flex flex-col gap-2">
-                    <label htmlFor="description" className={`font-semibold text-sm ${mode === "dark" ? "text-white" : "text-black"}`}>Description</label>
+                    <label htmlFor="description" className={`font-semibold text-sm ${context!.mode === "dark" ? "text-white" : "text-black"}`}>Description</label>
                     <Textarea 
                     placeholder="e.g: Always good to take a break" name="description" id="description" rows={4} 
                     sx={{
@@ -350,7 +341,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
                   </Box>
                   
                   <Box className="flex flex-col gap-2">
-                    <label className={`font-semibold text-sm ${mode === "dark" ? "text-white" : "text-black"}`}>Subtasks</label>
+                    <label className={`font-semibold text-sm ${context!.mode === "dark" ? "text-white" : "text-black"}`}>Subtasks</label>
                     <Box className="flex flex-col items-center p-1 gap-2 overflow-y-auto scrollbar-hidden max-h-[5.2rem] rounded-lg bg-[rgba(0,0,0,0.2)]">
                       {
                         [...Array(numberOfSubtasks)].map((_, index) => (
@@ -384,7 +375,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
                       }}
                       >
                           {
-                            columns.map((column) => {
+                            context!.columns.map((column) => {
                               return (
                                 <MenuItem value={column.id} style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>{column.name}</MenuItem>
                               )
@@ -403,7 +394,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
               onClose={() => setShowBoardCreation(false)}
               keepMounted
             >
-              <Box className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-[30vh] left-[35vw] z-10 rounded-md ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+              <Box className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-[30vh] left-[35vw] z-10 rounded-md ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <Input placeholder="Board Name" type="text" id="boardName" name="boardName" className="w-[20rem]" onKeyDown={(e) => {e.key === "Enter" ? createBoard() : null}} />
                 <button onClick={createBoard} className="bg-button font-bold text-base p-2 rounded-3xl w-full">Create Board</button>
               </Box>

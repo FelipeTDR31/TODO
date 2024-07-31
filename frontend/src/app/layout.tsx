@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ModeProvider } from "@/components/Context";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -12,8 +13,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="bg-primary-dark">{children}</body>
-    </html>
+    <ModeProvider>
+      <html lang="en">
+        <body className="bg-primary-dark">{children}</body>
+      </html>
+    </ModeProvider>
   );
 }

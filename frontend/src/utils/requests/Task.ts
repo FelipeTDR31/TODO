@@ -12,7 +12,7 @@ export interface Task{
 
 export const getTasks = async (ColumnId: number) : Promise<Task[]> => {
     return axios
-        .get("http://localhost:5002/api/Task", {
+        .get(`http://localhost:5002/api/Task/${ColumnId}`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             }
@@ -22,9 +22,9 @@ export const getTasks = async (ColumnId: number) : Promise<Task[]> => {
         });
 }
 
-export const getTask = async (id: number) : Promise<Task> => {
+export const getTask = async (columnId : number ,id: number) : Promise<Task> => {
     return axios
-        .get(`http://localhost:5002/api/Task/${id}`, {
+        .get(`http://localhost:5002/api/Task/${columnId}/${id}`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             }
@@ -34,28 +34,22 @@ export const getTask = async (id: number) : Promise<Task> => {
         });
 }
 
-export const createTask = async (name : string, description : string, columnId : number, order: number, subtasksArray: Subtask[]) : Promise<{task: Task, subtasks: Subtask[]}> => {
+export const createTask = async (name : string, description : string, columnId : number, order: number, subtasksArray: Subtask[]) : Promise<Task> => {
     return axios
         .post("http://localhost:5002/api/Task", {
             name,
             description,
             columnId,
-            order
+            order,
+            subtasks: subtasksArray
         }, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             }
         })
-        .then(async (response) => {
-            const subtasks : Subtask[] = [];
-            subtasksArray.forEach(async (subtask) => {
-                subtasks.push(await createSubtask(response.data.id, subtask.Description));
-            })
-            return {
-                task: response.data,
-                subtasks
-            };
-        });
+        .then((response) => {
+            return response.data;
+        })
 }
 
 export const updateTask = async (id: number, name : string, description : string, ColumnId : number) : Promise<Task> => {

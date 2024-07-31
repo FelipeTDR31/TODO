@@ -27,7 +27,7 @@ export const createColumn = async (name: string, position : number, TableID : nu
 
 export const getColumns = async (TableID : number) : Promise<Column[]> => {
     return axios
-        .get("http://localhost:5002/api/Column", {
+        .get(`http://localhost:5002/api/Column/${TableID}`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             }
@@ -37,9 +37,9 @@ export const getColumns = async (TableID : number) : Promise<Column[]> => {
         });
 }
 
-export const getColumn = async (id: number) : Promise<Column> => {
+export const getColumn = async (tableID : number,id: number) : Promise<Column> => {
     return axios
-        .get(`http://localhost:5002/api/Column/${id}`, {
+        .get(`http://localhost:5002/api/Column/${tableID}/${id}`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             }

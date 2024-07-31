@@ -17,16 +17,16 @@ namespace backend.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Subtask>>> GetSubtasks()
+        [HttpGet("{taskId}")]
+        public async Task<ActionResult<IEnumerable<Subtask>>> GetSubtasks(int taskId)
         {
-            return await _context.Subtask.ToListAsync();
+            return await _context.Subtask.Where(t => t.TaskId == taskId).ToListAsync();
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Subtask>> GetSubtask(int id)
+        [HttpGet("{taskId}/{subtaskId}")]
+        public async Task<ActionResult<Subtask>> GetSubtask(int taskId, int subtaskId)
         {
-            var subtask = await _context.Subtask.FindAsync(id);
+            var subtask = await _context.Subtask.Where(t => t.TaskId == taskId && t.Id == subtaskId).FirstOrDefaultAsync();
 
             if (subtask == null)
             {
@@ -58,13 +58,15 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutSubtask(int id, Subtask subtask)
         {
-            if (id != subtask.Id)
+            var subtaskToUpdate = await _context.Subtask.FindAsync(id);
+            if (subtaskToUpdate == null)
             {
                 return BadRequest();
+            }else{
+                subtaskToUpdate.IsDone = subtask.IsDone;
             }
 
-            _context.Entry(subtask).State = EntityState.Modified;
-
+            _context.Entry(subtaskToUpdate).State = EntityState.Modified;
             try
             {
                 await _context.SaveChangesAsync();

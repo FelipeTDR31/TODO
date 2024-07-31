@@ -9,7 +9,7 @@ export interface Subtask {
 
 export const getSubtasks = async (taskID: number) : Promise<Subtask[]> => {
     return axios
-        .get("http://localhost:5002/api/Subtask", {
+        .get(`http://localhost:5002/api/Subtask/${taskID}`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             }
@@ -19,9 +19,9 @@ export const getSubtasks = async (taskID: number) : Promise<Subtask[]> => {
         });
 }
 
-export const getSubtask = async (id: number) : Promise<Subtask> => {
+export const getSubtask = async (taskID : number,id: number) : Promise<Subtask> => {
     return axios
-        .get(`http://localhost:5002/api/Subtask/${id}`, {
+        .get(`http://localhost:5002/api/Subtask/${taskID}/${id}`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             }
