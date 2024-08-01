@@ -52,7 +52,7 @@ namespace backend.Controllers
             _context.Task.Add(task);
             await _context.SaveChangesAsync();
             var returnedTask = CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
-             var options = new JsonSerializerOptions
+            var options = new JsonSerializerOptions
             {
                 ReferenceHandler = ReferenceHandler.Preserve
             };

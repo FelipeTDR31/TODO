@@ -2,11 +2,11 @@ import axios from "axios";
 import { Task } from "./Task";
 
 export interface Column {
-    id: number;
-    name: string;
-    position: number;
-    tableId : number;
-    tasks?: Task[];
+    Id: number;
+    Name: string;
+    Position: number;
+    TableId : number;
+    Tasks?: Task[];
 }
 
 export const createColumn = async (name: string, position : number, TableID : number) : Promise<Column> => {
@@ -33,7 +33,8 @@ export const getColumns = async (TableID : number) : Promise<Column[]> => {
             }
         })
         .then((response) => {
-            return response.data;
+            console.log(response.data.$values);
+            return response.data.$values;
         });
 }
 

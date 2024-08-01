@@ -8,13 +8,13 @@ import SunImg from "@/utils/images/sun.png";
 import MoonImg from "@/utils/images/moon.png";
 import HideImg from "@/utils/images/hide.png";
 import SeeImg from "@/utils/images/see.png";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { MouseEventHandler, useContext, useEffect, useRef, useState } from "react";
 import Column from "@/components/Column";
 import { Input } from "@/utils/Tags/Input";
 import { useRouter } from "next/navigation";
 import { getUser } from "@/utils/requests/User";
 import { getTables } from "@/utils/requests/Table";
-import { getColumns } from "@/utils/requests/Column";
+import { createColumn, getColumns } from "@/utils/requests/Column";
 import { Subtask } from "@/utils/requests/Subtask";
 import { createTable } from "@/utils/requests/Table";
 import { createTask } from "@/utils/requests/Task";
@@ -36,6 +36,8 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const [showDrawer, setShowDrawer] = useState(true);
     const [showDropdown, setShowDropdown] = useState(false);
     const [status, setStatus] = useState<string>("");
+    const [input, setInput] = useState('');
+    let isFirstRender = true;
     const router = useRouter();
     const hasMounted = useRef(false);
     
@@ -137,7 +139,21 @@ export default function UserPage({ params }: { params: { user: string } }) {
       const board = await createTable(name,user!.id)
       if (board) {
         setBoards([...boards, board]);
+        setSelectedTable(board);
         setShowBoardCreation(false);
+      }
+    }
+
+    async function changeBoard (e : React.MouseEvent<HTMLButtonElement>) {
+      const target = e.currentTarget
+      const prevChosenBoard = document.querySelector(".chosen-board")
+      if (!target.classList.contains("chosen-board")) {
+        prevChosenBoard?.classList.remove("chosen-board");
+        target.classList.add("chosen-board");
+        const id = target.id
+        const board = boards.find(board => board.id === Number(id))
+        setSelectedTable(board!);
+        context!.setColumns(await getColumns(board!.id));
       }
     }
 
@@ -174,13 +190,26 @@ export default function UserPage({ params }: { params: { user: string } }) {
       setStatus(e.target.value);
   }
 
+  function CreateColumn (e : React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      createColumn(input, 1, selectedTable!.id)
+      .then(async () => {
+        context!.setColumns(await getColumns(selectedTable!.id));
+        setInput('');
+      })
+    }else if (e.key === "Escape") {
+      const input = document.getElementById("createColumn") as HTMLInputElement;
+      input.parentElement!.parentElement!.parentElement!.remove();
+    }
+  }
+
   function addColumn() {
-    let column = <Column mode={context!.mode} boardId={boards[boards.length - 1].id} />
+    let inputElement = <Input type="text" className='w-[12vw]' id="createColumn" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={CreateColumn} autoFocus />
     let mainContent = document.querySelector(".main-content")
     let root = document.createElement("span")
     mainContent?.insertBefore(root, mainContent.lastChild)
     if (root) {
-      createRoot(root).render(column);
+      createRoot(root).render(inputElement);
     }
   }
 
@@ -190,7 +219,6 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const taskDescription = document.getElementById("description") as HTMLInputElement;
     const description = taskDescription.value;
     const subtasks = document.querySelectorAll(".subtasksInput") as NodeListOf<HTMLInputElement>;
-    console.log(subtasks)
     let subtasksArray : Subtask[] = [];
     for (let i = 0; i < subtasks.length; i++) {
       const e = subtasks[i].firstChild?.firstChild as HTMLInputElement;
@@ -203,16 +231,13 @@ export default function UserPage({ params }: { params: { user: string } }) {
       })
     }
     const order = 1;
-    const response = await createTask(name, description, Number(status), order, subtasksArray);
-      const taskElement = <Task mode={context!.mode} name={response.Name} description={response.Description} subtasks={response.Subtasks}  />;
-      let columnElement = document.querySelector(`#column-${status}`)?.children[1];
-      let root = document.createElement("span")
-      columnElement?.appendChild(root)
-      if (root) {
-        createRoot(root).render(taskElement);
-      }
+    createTask(name, description, Number(status), order, subtasksArray)
+    .then(async (response) => {
+      const columns = await getColumns(selectedTable!.id);
+      context!.setColumns(columns);
+      setShowAddNewTask(false);
+    })
     
-    setShowAddNewTask(false);
   }
 
     return (
@@ -221,6 +246,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
              open={showDrawer} 
              anchor="left"
              onClose={hideDrawer}
+             keepMounted
              >
               <Box className={`aside-content flex flex-col justify-around p-6 font-bold w-[22vw] h-screen ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <h3 className={`text-3xl -ml-3 -mt-8 ${context!.mode === "dark" ? "text-white" : "text-black"}`}>{params.user} Kanban</h3>
@@ -231,13 +257,14 @@ export default function UserPage({ params }: { params: { user: string } }) {
                           {
                               boards.map((board, index) => {
                                 let lastElement = boards.length -1
-                                if (index === lastElement) {
+                                if (index === lastElement && isFirstRender) {
+                                  isFirstRender = false
                                   return(
-                                    <button id={board.id.toString()} key={index} className={`chosen-board text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{board.name}</button>
+                                    <button onClick={changeBoard} id={board.id.toString()} key={index} className={`chosen-board text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{board.name}</button>
                                   )
                                 }else{
                                   return(
-                                    <button id={board.id.toString()} key={index} className={`text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{board.name}</button>
+                                    <button onClick={changeBoard} id={board.id.toString()} key={index} className={`text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{board.name}</button>
                                   )
                                 }
                               })
@@ -262,7 +289,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
               </Box>
             </Drawer>
 
-            <button onClick={hideDrawer} className="rounded-full flex justify-center items-center w-10 h-10 absolute bottom-[1rem] left-2 hover:bg-gray-600 z-10">
+            <button onClick={hideDrawer} className="rounded-full flex justify-center items-center w-10 h-10 fixed bottom-[1rem] left-2 hover:bg-gray-600 z-10">
               <Image src={SeeImg} alt="see" width={25} height={25} />
             </button>
 
@@ -287,17 +314,18 @@ export default function UserPage({ params }: { params: { user: string } }) {
                 </Box>
             </Box>
 
-            <Box className="main-content w-[78vw] absolute top-[15vh] left-[22vw] h-[80vh] pl-4 pt-4 flex gap-6">
+            <Box className="main-content min-w-[78vw] max-w-[100vw] overflow-auto absolute top-[15vh] left-[22vw] h-[80vh] pl-4 pt-4 flex gap-6">
                 {
                   context!.columns.map((column, index) => {
-                    if (column.tableId == selectedTable!.id) {
+                    if (column.TableId == selectedTable!.id) {
                       return(
                         <Column
                           key={index}
-                          name={column.name}
+                          name={column.Name}
                           mode={context!.mode}
-                          boardId={column.tableId}
-                          columnId={column.id}
+                          boardId={column.TableId}
+                          columnId={column.Id}
+                          tasks={column.Tasks!.$values}
                         />
                       )
                     }
@@ -377,7 +405,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
                           {
                             context!.columns.map((column) => {
                               return (
-                                <MenuItem value={column.id} style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>{column.name}</MenuItem>
+                                <MenuItem value={column.Id} style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>{column.Name}</MenuItem>
                               )
                             })
                           }

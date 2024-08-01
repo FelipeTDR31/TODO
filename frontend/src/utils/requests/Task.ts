@@ -48,7 +48,7 @@ export const createTask = async (name : string, description : string, columnId :
             }
         })
         .then((response) => {
-            return response.data;
+            return response.data.Value;
         })
 }
 

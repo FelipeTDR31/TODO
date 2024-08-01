@@ -6,7 +6,6 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import interact from "interactjs";
 import { InteractEvent } from "@interactjs/types";
 import { Subtask, updateSubtask } from "@/utils/requests/Subtask";
-import { Table } from "@/utils/requests/Table";
 import { ModeContext } from "./Context";
 
 export default function Task ({mode, name, description, subtasks} : {mode: "light" | "dark", name: string, description?: string, subtasks?: Subtask[]}) {
@@ -134,7 +133,7 @@ export default function Task ({mode, name, description, subtasks} : {mode: "ligh
                                     {
                                         context!.columns.map((column) => {
                                         return (
-                                            <MenuItem value={column.id} style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>{column.name}</MenuItem>
+                                            <MenuItem value={column.Id} style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>{column.Name}</MenuItem>
                                         )
                                         })
                                     }

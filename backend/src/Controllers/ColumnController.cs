@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using backend.Data;
 using backend.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +22,12 @@ namespace backend.Controllers
         [HttpGet("{tableId}")]
         public async Task<ActionResult<IEnumerable<Column>>> GetColumns(int tableId)
         {
-            return await _context.Column.ToListAsync();
+            var returnedColumns = await _context.Column.Include(x => x.Tasks).ThenInclude(x => x.Subtasks).Where(x => x.TableId == tableId).ToListAsync();
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.Preserve
+            };
+            return Ok(JsonSerializer.Serialize(returnedColumns, options));
         }
 
         // GET: api/Column/5
@@ -44,7 +51,7 @@ namespace backend.Controllers
             _context.Column.Add(column);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetColumn), new { id = column.Id }, column);
+            return Ok(CreatedAtAction(nameof(GetColumn), new { id = column.Id }, column));
         }
 
         // PUT: api/Column/5
