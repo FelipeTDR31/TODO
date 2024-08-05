@@ -7,12 +7,14 @@ import interact from "interactjs";
 import { InteractEvent } from "@interactjs/types";
 import { Subtask, updateSubtask } from "@/utils/requests/Subtask";
 import { ModeContext } from "./Context";
+import { updateTask } from "@/utils/requests/Task";
+import { getColumns } from "@/utils/requests/Column";
 
-export default function Task ({mode, name, description, subtasks} : {mode: "light" | "dark", name: string, description?: string, subtasks?: Subtask[]}) {
+export default function Task ({mode, id, columnId, name, description, subtasks} : {mode: "light" | "dark", name: string, description: string, subtasks: Subtask[], id: number, columnId: number}) {
     const [showDetails, setShowDetails] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [checked, setChecked] = useState(subtasks?.map(subtask => subtask.IsDone) || []);
-    const [status, setStatus] = useState("");
+    const [status, setStatus] = useState<number>(columnId);
     const context = useContext(ModeContext);
     const position = {x: 0, y: 0}
 
@@ -39,8 +41,20 @@ export default function Task ({mode, name, description, subtasks} : {mode: "ligh
     function handleSelectChange(e : SelectChangeEvent)  {
         e.preventDefault();
         e.stopPropagation();
-        setStatus(e.target.value);
+        if (status !== Number(e.target.value)) {
+            setStatus(Number(e.target.value));
+        }
     }
+
+    useEffect(() => {
+        const updateStatus = async () => {
+            if (status !== columnId) {
+                await updateTask(id, name, description, status)
+                .then(async () => context?.setColumns(await getColumns(context?.selectedTable?.id || 0)));
+            }
+        }
+        updateStatus();
+    }, [status, columnId, id, name, description, context]);
 
     interact(".draggableTask").draggable({
         onmove: (event : InteractEvent) => {
@@ -51,6 +65,15 @@ export default function Task ({mode, name, description, subtasks} : {mode: "ligh
         }
         , onend: (event : InteractEvent) => {
             event.target.style.transform = `translate(0px, 0px)`
+            const column = event.relatedTarget?.parentElement
+            if (column !=undefined && column.id != `column-${status}`) {
+                try {
+                    event.target.remove()
+                    setStatus(Number(column.id.split("-")[1]))
+                } catch (error) {
+                    console.log(error)
+                }
+            }
             position.x = 0
             position.y = 0
             
@@ -65,7 +88,7 @@ export default function Task ({mode, name, description, subtasks} : {mode: "ligh
             }} 
             className={`draggableTask p-5 h-fit w-full flex flex-col gap-1 rounded-lg ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"} hover:opacity-95 hover:cursor-pointer`}>
                 <h1 className={`font-semibold text-base ${mode === "dark" ? "text-white" : "text-black"}`}>{name}</h1>
-                <span className="text-gray-400 font-semibold text-sm"> 0 of 3 subtasks</span>
+                <span className="text-gray-400 font-semibold text-sm">{`${checked?.filter(checked => checked).length} of ${checked?.length} subtasks`}</span>
             </Box>
             <Modal
                 open={showDetails}
@@ -117,8 +140,8 @@ export default function Task ({mode, name, description, subtasks} : {mode: "ligh
                                 <Select 
                                 label="Status" 
                                 name="status" 
-                                id="statusSelect"
-                                value={status}
+                                id="columnSelect"
+                                value={status!.toString()}
                                 onChange={handleSelectChange}
                                 variant="standard"
                                 sx={{

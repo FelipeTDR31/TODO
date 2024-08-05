@@ -33,7 +33,6 @@ export const getColumns = async (TableID : number) : Promise<Column[]> => {
             }
         })
         .then((response) => {
-            console.log(response.data.$values);
             return response.data.$values;
         });
 }

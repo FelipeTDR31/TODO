@@ -56,7 +56,8 @@ export const updateTask = async (id: number, name : string, description : string
     return axios
         .put(`http://localhost:5002/api/Task/${id}`, {
             name,
-            description
+            description,
+            columnId: ColumnId
         }, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,

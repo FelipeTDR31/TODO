@@ -62,12 +62,17 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTask(int id, Models.Task task)
         {
-            if (id != task.Id)
+            var taskToUpdate = await _context.Task.FindAsync(id);
+            if (taskToUpdate == null)
             {
                 return BadRequest();
             }
 
-            _context.Entry(task).State = EntityState.Modified;
+            taskToUpdate.ColumnId = task.ColumnId;
+            taskToUpdate.Name = task.Name;
+            taskToUpdate.Description = task.Description;
+
+            _context.Entry(taskToUpdate).State = EntityState.Modified;
 
             try
             {

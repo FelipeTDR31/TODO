@@ -30,7 +30,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const [showAddNewTask, setShowAddNewTask] = useState(false);
     const [user, setUser] = useState<User | null>(null);
     const [boards, setBoards] = useState<Table[]>([]);
-    const [selectedTable, setSelectedTable] = useState<Table | null>(null);
+    const { selectedTable, setSelectedTable } = context!;
     const [numberOfSubtasks, setNumberOfSubtasks] = useState(1);
     const [showBoardCreation, setShowBoardCreation] = useState(false);
     const [showDrawer, setShowDrawer] = useState(true);
@@ -190,26 +190,55 @@ export default function UserPage({ params }: { params: { user: string } }) {
       setStatus(e.target.value);
   }
 
-  function CreateColumn (e : React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") {
-      createColumn(input, 1, selectedTable!.id)
-      .then(async () => {
-        context!.setColumns(await getColumns(selectedTable!.id));
-        setInput('');
-      })
-    }else if (e.key === "Escape") {
-      const input = document.getElementById("createColumn") as HTMLInputElement;
-      input.parentElement!.parentElement!.parentElement!.remove();
-    }
+  function handleInputChange(e : React.ChangeEvent<HTMLInputElement>) {
+    setInput(e.target.value);
   }
 
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      e.stopPropagation();
+      if (e.key === "Enter" && input) {
+        createColumn(input, 1, selectedTable!.id)
+          .then(async () => {
+            context!.setColumns(await getColumns(selectedTable!.id));
+            setInput('');
+            const inputElement = document.getElementById("createColumn") as HTMLInputElement | null;
+            if (inputElement) {
+              inputElement.parentElement!.parentElement!.parentElement!.remove();
+            }
+          })
+          .catch(() => {
+            setInput('');
+          });
+      } else if (e.key === "Escape") {
+        const inputElement = document.getElementById("createColumn") as HTMLInputElement | null;
+        if (inputElement) {
+          inputElement.parentElement!.parentElement!.parentElement!.remove();
+        }
+      }
+    };
+
+    const createColumnInput = document.getElementById("createColumn");
+    if (createColumnInput) {
+      createColumnInput.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      if (createColumnInput) {
+        createColumnInput.removeEventListener("keydown", handleKeyDown);
+      }
+    };
+  }, [input]);
+
   function addColumn() {
-    let inputElement = <Input type="text" className='w-[12vw]' id="createColumn" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={CreateColumn} autoFocus />
+    let inputElement = <Input type="text" className='w-[12vw]' id="createColumn" defaultValue={input} onChange={handleInputChange} autoFocus />
     let mainContent = document.querySelector(".main-content")
     let root = document.createElement("span")
     mainContent?.insertBefore(root, mainContent.lastChild)
     if (root) {
       createRoot(root).render(inputElement);
+      
     }
   }
 
@@ -251,7 +280,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
               <Box className={`aside-content flex flex-col justify-around p-6 font-bold w-[22vw] h-screen ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <h3 className={`text-3xl -ml-3 -mt-8 ${context!.mode === "dark" ? "text-white" : "text-black"}`}>{params.user} Kanban</h3>
                 <Box className="flex flex-col h-1/2">
-                    <h4 className="text-gray-400 text-sm">Your Boards {"()"}</h4>
+                    <h4 className="text-gray-400 text-sm">Your Boards {`(${boards.length})`}</h4>
                     <Box className="flex flex-col h-4/5 mt-2">
                       <Box className={`flex flex-col-reverse gap-2 p-3 overflow-auto scrollbar-hidden min-h-1/4 max-h-full rounded-md ${context!.mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`} id="boards">
                           {
