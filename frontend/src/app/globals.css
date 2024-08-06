@@ -102,3 +102,38 @@ input[type=checkbox]:checked {
   width: 0px;
   background: transparent;
 }
+
+
+/* Custom Scrollbar */
+
+/* width */
+::-webkit-scrollbar {
+  width: 8px;  
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary-light);
+  border-radius: 15px;
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--bg-secondary-dark); 
+  border-radius: 15px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-primary-dark); 
+}
+ 
+/* Handle on active */
+::-webkit-scrollbar-thumb:active {
+  background: var(--bg-primary-dark); 
+}
+
+/* Corner */
+::-webkit-scrollbar-corner {
+  background: transparent; 
+}

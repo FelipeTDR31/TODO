@@ -36,7 +36,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const [showDrawer, setShowDrawer] = useState(true);
     const [showDropdown, setShowDropdown] = useState(false);
     const [status, setStatus] = useState<string>("");
-    const [input, setInput] = useState('');
+    const [input, setInput] = useState<string | undefined>();
     let isFirstRender = true;
     const router = useRouter();
     const hasMounted = useRef(false);
@@ -202,19 +202,20 @@ export default function UserPage({ params }: { params: { user: string } }) {
         createColumn(input, 1, selectedTable!.id)
           .then(async () => {
             context!.setColumns(await getColumns(selectedTable!.id));
-            setInput('');
+            setInput(undefined);
             const inputElement = document.getElementById("createColumn") as HTMLInputElement | null;
             if (inputElement) {
               inputElement.parentElement!.parentElement!.parentElement!.remove();
             }
           })
           .catch(() => {
-            setInput('');
+            setInput(undefined);
           });
       } else if (e.key === "Escape") {
         const inputElement = document.getElementById("createColumn") as HTMLInputElement | null;
         if (inputElement) {
           inputElement.parentElement!.parentElement!.parentElement!.remove();
+          setInput(undefined);
         }
       }
     };
@@ -231,6 +232,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
     };
   }, [input]);
 
+
   function addColumn() {
     let inputElement = <Input type="text" className='w-[12vw]' id="createColumn" defaultValue={input} onChange={handleInputChange} autoFocus />
     let mainContent = document.querySelector(".main-content")
@@ -241,6 +243,23 @@ export default function UserPage({ params }: { params: { user: string } }) {
       
     }
   }
+  useEffect(() => {
+    const addColumnInput = document.getElementById("addColumn");
+    const createColumnInput = document.getElementById("createColumn");
+
+    const handleClick = () => {
+      if (createColumnInput == null && input == undefined) {
+        addColumn();
+        setInput("")
+      }
+    };
+
+    addColumnInput?.addEventListener("click", handleClick);
+
+    return () => {
+      addColumnInput?.removeEventListener("click", handleClick);
+    };
+  }, [input]);
 
   async function CreateTask() {
     const taskName = document.getElementById("title") as HTMLInputElement;
@@ -360,7 +379,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
                     }
                   })
                 }
-                <button onClick={addColumn} className={`h-full w-[22vw] font-bold ${context!.mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
+                <button id="addColumn" className={`h-full w-[22vw] flex-shrink-0 font-bold ${context!.mode === "dark" ? "text-gray-500 bg-[#24242F]" : "text-gray-400 bg-[#E5E5E5]"} hover:opacity-90`}>+ New Column</button>
             </Box>
 
             <Modal

@@ -24,7 +24,7 @@ export default function Column({mode, name, boardId, columnId, tasks} : {mode: '
     })
 
     return (
-        <Box className={`h-full w-[22vw]`} id={`column-${columnId}`}>
+        <Box className={`h-full w-[22vw] flex-shrink-0`} id={`column-${columnId}`}>
             <h1 className={`font-bold text-lg flex items-center -mt-12 ${mode === 'dark' ? 'text-gray-400' : 'text-black'}`}><span className={`text-8xl mb-6`} style={{color: `#${Math.floor(Math.random() * 16777215).toString(16)}`}}>&#8226;</span>{name} {`(${tasks?.length})`}</h1>
             <Box className={`w-full min-h-[60vh] -mt-6 flex flex-col gap-6 taskDropzone`}>
                 {

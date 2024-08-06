@@ -15,6 +15,8 @@ export default function Task ({mode, id, columnId, name, description, subtasks} 
     const [showDropdown, setShowDropdown] = useState(false);
     const [checked, setChecked] = useState(subtasks?.map(subtask => subtask.IsDone) || []);
     const [status, setStatus] = useState<number>(columnId);
+    const [taskId, setTaskId] = useState<number>();
+    let number = 0;
     const context = useContext(ModeContext);
     const position = {x: 0, y: 0}
 
@@ -43,33 +45,39 @@ export default function Task ({mode, id, columnId, name, description, subtasks} 
         e.stopPropagation();
         if (status !== Number(e.target.value)) {
             setStatus(Number(e.target.value));
+            setTaskId(id);
         }
     }
 
     useEffect(() => {
         const updateStatus = async () => {
             if (status !== columnId) {
+                console.log("runned")
+                console.log(id)
+                console.log(status+" "+ columnId)
                 await updateTask(id, name, description, status)
                 .then(async () => context?.setColumns(await getColumns(context?.selectedTable?.id || 0)));
             }
         }
+
         updateStatus();
-    }, [status, columnId, id, name, description, context]);
+    }, [status]);
 
     interact(".draggableTask").draggable({
         onmove: (event : InteractEvent) => {
-            position.x += event.dx
-            position.y += event.dy
+            position.x += event.dx/2
+            position.y += event.dy/2
             event.target.style.transform = `translate(${position.x}px, ${position.y}px)`
             event.target.style.transition = "none"
         }
         , onend: (event : InteractEvent) => {
             event.target.style.transform = `translate(0px, 0px)`
             const column = event.relatedTarget?.parentElement
-            if (column !=undefined && column.id != `column-${status}`) {
+            if (column !=undefined && column.id != `column-${status}` && number != Number(column.id.split("-")[1])) {
                 try {
                     event.target.remove()
                     setStatus(Number(column.id.split("-")[1]))
+                    number = Number(column.id.split("-")[1])
                 } catch (error) {
                     console.log(error)
                 }
@@ -79,6 +87,7 @@ export default function Task ({mode, id, columnId, name, description, subtasks} 
             
         }
     }).styleCursor(false)
+
     return (
         <Box>
             <Box 
@@ -92,7 +101,8 @@ export default function Task ({mode, id, columnId, name, description, subtasks} 
             </Box>
             <Modal
                 open={showDetails}
-                onClose={() => setShowDetails(false)}
+                onClose={() => setShowDetails(false) }
+                keepMounted
             >
                 <div id="task-details" className={`flex flex-col absolute top-[15vh] left-[35vw] w-[30vw] p-6 rounded-md z-10 gap-3 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                             <div className="flex items-center justify-between">
