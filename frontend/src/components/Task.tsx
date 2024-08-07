@@ -14,9 +14,6 @@ export default function Task ({mode, id, columnId, name, description, subtasks} 
     const [showDetails, setShowDetails] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [checked, setChecked] = useState(subtasks?.map(subtask => subtask.IsDone) || []);
-    const [status, setStatus] = useState<number>(columnId);
-    const [taskId, setTaskId] = useState<number>();
-    let number = 0;
     const context = useContext(ModeContext);
     const position = {x: 0, y: 0}
 
@@ -40,61 +37,54 @@ export default function Task ({mode, id, columnId, name, description, subtasks} 
         }
       }
 
+      function handleSetShowDetails() {
+        setShowDetails(!showDetails);
+      }
+
     function handleSelectChange(e : SelectChangeEvent)  {
         e.preventDefault();
         e.stopPropagation();
-        if (status !== Number(e.target.value)) {
-            setStatus(Number(e.target.value));
-            setTaskId(id);
+        if (columnId !== Number(e.target.value)) {
+            updateTask(id, name, description, Number(e.target.value))
+            .then(async () => context?.setColumns(await getColumns(context?.selectedTable?.id || 0)))
         }
     }
 
     useEffect(() => {
-        const updateStatus = async () => {
-            if (status !== columnId) {
-                console.log("runned")
-                console.log(id)
-                console.log(status+" "+ columnId)
-                await updateTask(id, name, description, status)
-                .then(async () => context?.setColumns(await getColumns(context?.selectedTable?.id || 0)));
+        interact(".draggableTask").draggable({
+            onmove: (event : InteractEvent) => {
+                position.x += event.dx
+                position.y += event.dy
+                event.target.style.transform = `translate(${position.x}px, ${position.y}px)`
+                event.target.style.transition = "none"
+                event.target.removeEventListener("click", handleSetShowDetails)
             }
-        }
-
-        updateStatus();
-    }, [status]);
-
-    interact(".draggableTask").draggable({
-        onmove: (event : InteractEvent) => {
-            position.x += event.dx/2
-            position.y += event.dy/2
-            event.target.style.transform = `translate(${position.x}px, ${position.y}px)`
-            event.target.style.transition = "none"
-        }
-        , onend: (event : InteractEvent) => {
-            event.target.style.transform = `translate(0px, 0px)`
-            const column = event.relatedTarget?.parentElement
-            if (column !=undefined && column.id != `column-${status}` && number != Number(column.id.split("-")[1])) {
-                try {
-                    event.target.remove()
-                    setStatus(Number(column.id.split("-")[1]))
-                    number = Number(column.id.split("-")[1])
-                } catch (error) {
-                    console.log(error)
+            , onend: (event : InteractEvent) => {
+                event.target.style.transform = `translate(0px, 0px)`
+                let idTaskElement = event.target.id.split("-")[1]
+                const column = event.relatedTarget?.parentElement
+                if (column !=undefined && column.id != `column-${columnId}` && id == Number(idTaskElement)) {
+                    try {
+                        updateTask(id, name, description, Number(column.id.split("-")[1]))
+                        .then(async () => context?.setColumns(await getColumns(context?.selectedTable?.id || 0)))
+                    } catch (error) {
+                        console.log(error)
+                    }
                 }
+                position.x = 0
+                position.y = 0
             }
-            position.x = 0
-            position.y = 0
-            
+        }).styleCursor(false)
+
+        if(document.getElementById(`task-${id}`)) {
+            document.getElementById(`task-${id}`)?.addEventListener("click", handleSetShowDetails)
         }
-    }).styleCursor(false)
+    }, [])
 
     return (
         <Box>
-            <Box 
-            onClick={(e : React.MouseEvent) => {
-                e.stopPropagation()
-                showDetails ? null : setShowDetails(!showDetails)
-            }} 
+            <Box
+            id={`task-${id}`}
             className={`draggableTask p-5 h-fit w-full flex flex-col gap-1 rounded-lg ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"} hover:opacity-95 hover:cursor-pointer`}>
                 <h1 className={`font-semibold text-base ${mode === "dark" ? "text-white" : "text-black"}`}>{name}</h1>
                 <span className="text-gray-400 font-semibold text-sm">{`${checked?.filter(checked => checked).length} of ${checked?.length} subtasks`}</span>
@@ -106,7 +96,7 @@ export default function Task ({mode, id, columnId, name, description, subtasks} 
             >
                 <div id="task-details" className={`flex flex-col absolute top-[15vh] left-[35vw] w-[30vw] p-6 rounded-md z-10 gap-3 ${mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                             <div className="flex items-center justify-between">
-                                <h1 className={`font-bold text-lg ${mode === "dark" ? "text-white" : "text-black"}`}>Details</h1>
+                                <h1 className={`font-bold text-lg ${mode === "dark" ? "text-white" : "text-black"}`}>{name}</h1>
                                 <Box>
                                     <Button onClick={(e : React.MouseEvent) => {
                                         e.stopPropagation()
@@ -136,7 +126,7 @@ export default function Task ({mode, id, columnId, name, description, subtasks} 
                                             return (
                                                 <div key={index} className={`flex items-center gap-2 rounded p-2 ${mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`}>
                                                     <Checkbox id={`subtask-${subtask.Id}`} checked={checked}  />
-                                                    <label id={`label-${subtask.Id}`}>{subtask.Description}</label>
+                                                    <label id={`label-${subtask.Id}`} className={`${checked ? "line-through text-gray-400" : ""}`}>{subtask.Description}</label>
                                                 </div>
                                             )
                                         })

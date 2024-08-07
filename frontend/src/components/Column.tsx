@@ -1,12 +1,8 @@
-import { Input } from '@/utils/Tags/Input';
-import { useState, useEffect, useContext } from 'react';
 import Task from './Task';
 import { Box } from '@mui/material';
 import interact from "interactjs";
 import { InteractEvent } from '@interactjs/types';
-import { createColumn, getColumns } from '@/utils/requests/Column';
-import {getTasks, Task as TaskType} from '@/utils/requests/Task';
-import { ModeContext } from './Context';
+import {Task as TaskType} from '@/utils/requests/Task';
 
 export default function Column({mode, name, boardId, columnId, tasks} : {mode: 'light' | 'dark', name?: string, boardId: number, columnId?: number, tasks?: TaskType[]}) {
 
