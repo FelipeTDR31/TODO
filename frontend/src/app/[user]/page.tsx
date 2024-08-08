@@ -13,8 +13,8 @@ import Column from "@/components/Column";
 import { Input } from "@/utils/Tags/Input";
 import { useRouter } from "next/navigation";
 import { getUser } from "@/utils/requests/User";
-import { getTables } from "@/utils/requests/Table";
-import { createColumn, getColumns } from "@/utils/requests/Column";
+import { deleteTable, getTables, updateTable } from "@/utils/requests/Table";
+import { createColumn, deleteColumn, getColumns } from "@/utils/requests/Column";
 import { Subtask } from "@/utils/requests/Subtask";
 import { createTable } from "@/utils/requests/Table";
 import { createTask } from "@/utils/requests/Task";
@@ -23,6 +23,9 @@ import { Table } from "@/utils/requests/Table";
 import { Textarea } from "@/utils/Tags/Textarea";
 import { createRoot, hydrateRoot } from "react-dom/client";
 import { ModeContext } from "@/components/Context";
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+
 export default function UserPage({ params }: { params: { user: string } }) {
     const context = useContext(ModeContext);
     const [showAddNewTask, setShowAddNewTask] = useState(false);
@@ -35,6 +38,10 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const [showDropdown, setShowDropdown] = useState(false);
     const [status, setStatus] = useState<string>("");
     const [input, setInput] = useState<string | undefined>();
+    const [showDeleteBoardModal, setShowDeleteBoardModal] = useState(false);
+    const [showUpdateBoardModal, setShowUpdateBoardModal] = useState(false);
+    const [showDeleteColumnModal, setShowDeleteColumnModal] = useState(false);
+    const [selectedColumnId, setSelectedColumnId] = useState<string>("");
     let isFirstRender = true;
     const router = useRouter();
     const hasMounted = useRef(false);
@@ -139,6 +146,47 @@ export default function UserPage({ params }: { params: { user: string } }) {
         setBoards([...boards, board]);
         setSelectedTable(board);
         setShowBoardCreation(false);
+      }
+    }
+
+    function deleteBoard() {
+      if (boards.length > 1) {
+        deleteTable(selectedTable!.id)
+        .then(async () => {
+          let boards = await getTables(user!.id);
+          setSelectedTable(boards[boards.length - 1]);
+          setBoards(boards);
+          let columns = await getColumns(boards[boards.length - 1].id);
+          context!.setColumns(columns);
+          setShowDeleteBoardModal(false);
+        })
+      }else{
+        toast.error("Unable to delete last board", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: "colored",
+        });
+      }
+    }
+
+    function updateBoard() {
+      let updateInput = document.getElementById("updateBoard") as HTMLInputElement
+      let name = updateInput.value
+      if (name !== "") {
+        updateTable(selectedTable!.id, name, user!.id)
+        .then(async () => {
+          let boards = await getTables(user!.id);
+          setSelectedTable(boards[boards.length - 1]);
+          setBoards(boards);
+          let columns = await getColumns(boards[boards.length - 1].id);
+          context!.setColumns(columns);
+          setShowUpdateBoardModal(false);
+        })
       }
     }
 
@@ -259,6 +307,14 @@ export default function UserPage({ params }: { params: { user: string } }) {
     };
   }, [input]);
 
+  function DeleteColumn () {
+    deleteColumn(Number(selectedColumnId))
+    .then(async () => {
+      context!.setColumns(await getColumns(selectedTable!.id));
+      setShowDeleteColumnModal(false);
+    })
+  }
+
   async function CreateTask() {
     const taskName = document.getElementById("title") as HTMLInputElement;
     const name = taskName.value;
@@ -288,6 +344,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
 
     return (
         <Box className="kanban-template">
+            {/* Sidebar Drawer */}
             <Drawer
              open={showDrawer} 
              anchor="left"
@@ -299,7 +356,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
                 <Box className="flex flex-col h-1/2">
                     <h4 className="text-gray-400 text-sm">Your Boards {`(${boards.length})`}</h4>
                     <Box className="flex flex-col h-4/5 mt-2">
-                      <Box className={`flex flex-col-reverse gap-2 p-3 overflow-auto scrollbar-hidden min-h-1/4 max-h-full rounded-md ${context!.mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`} id="boards">
+                      <Box className={`flex flex-col-reverse gap-2 p-3 overflow-auto min-h-1/4 max-h-full rounded-md ${context!.mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`} id="boards">
                           {
                               boards.map((board, index) => {
                                 let lastElement = boards.length -1
@@ -338,7 +395,8 @@ export default function UserPage({ params }: { params: { user: string } }) {
             <button onClick={hideDrawer} className="rounded-full flex justify-center items-center w-10 h-10 fixed bottom-[1rem] left-2 hover:bg-gray-600 z-10">
               <Image src={SeeImg} alt="see" width={25} height={25} />
             </button>
-
+            
+            {/* Top Bar */}
             <Box className={`cBox absolute top-0 right-0 font-bold flex items-center justify-between p-5 border-b border-l border-gray-500 w-[78vw] h-[15vh] ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <h1 className={`text-xl ${context!.mode === "dark" ? "text-white" : "text-black"}`}>Platform Launch</h1>
                 <Box className="flex gap-3 items-center">
@@ -352,14 +410,77 @@ export default function UserPage({ params }: { params: { user: string } }) {
                         onClose={() => setShowDropdown(false)}
                         anchorEl={document.querySelector(".dropdown")}
                       >
-                        <MenuItem>Delete Board</MenuItem>
-                        <MenuItem>Update Board</MenuItem>
-                        <MenuItem>Delete Column</MenuItem>
+                        <MenuItem onClick={() => {setShowDeleteBoardModal(true); setShowDropdown(false)}} style={{color: "#645FC7", fontWeight: "600", padding: "0.5rem"}}>Delete Board</MenuItem>
+                        <MenuItem onClick={() => {setShowUpdateBoardModal(true); setShowDropdown(false)}} style={{color: "#645FC7", fontWeight: "600", padding: "0.5rem"}}>Update Board</MenuItem>
+                        <MenuItem onClick={() => {setShowDeleteColumnModal(true); setShowDropdown(false)}} style={{color: "#645FC7", fontWeight: "600", padding: "0.5rem"}}>Delete Column</MenuItem>
                       </Menu>
                     </Box>
                 </Box>
             </Box>
 
+            <Modal
+              open={showDeleteBoardModal}
+              onClose={() => setShowDeleteBoardModal(false)}
+            >
+              <Box className={`flex flex-col rounded-xl font-semibold gap-3 p-5 absolute top-[35vh] left-[35vw] ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+                  <p>Are you sure you want to delete this board?</p>
+                  <button onClick={deleteBoard} className="bg-button text-sm p-3 px-2 rounded-3xl">Delete Board</button>
+                  <button onClick={() => setShowDeleteBoardModal(false)} className="text-sm p-3 px-2 rounded-3xl border border-gray-500 hover:opacity-90">Cancel</button>
+              </Box>
+            </Modal>
+
+            <Modal
+            open={showUpdateBoardModal}
+            onClose={() => setShowUpdateBoardModal(false)}
+            >
+              <Box className={`flex flex-col rounded-xl font-semibold gap-3 p-5 absolute top-[35vh] left-[35vw] ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+                  <h3>Update Board</h3>
+                  <Input type="text" id="updateBoard" placeholder="New Board Name" />
+                  <button onClick={updateBoard} className="bg-button text-sm p-3 px-2 rounded-3xl">Update Board</button>
+                  <button onClick={() => setShowUpdateBoardModal(false)} className="text-sm p-3 px-2 rounded-3xl border border-gray-500 hover:opacity-90">Cancel</button>
+              </Box>
+            </Modal>
+
+            <Modal
+            open={showDeleteColumnModal}
+            onClose={() => setShowDeleteColumnModal(false)}
+            >
+              <Box className={`flex w-[20vw] flex-col rounded-xl font-semibold gap-3 p-5 absolute top-[35vh] left-[35vw] ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+              <FormControl>
+                      <InputLabel id="deleteColumn" variant="standard" style={{color: "gray", fontWeight: "600", padding: "0.2rem"}}>Columns</InputLabel>
+                      <Select 
+                      label="deleteColumn" 
+                      name="deleteColumn" 
+                      id="deleteColumnSelect"
+                      value={selectedColumnId}
+                      onChange={(e) => setSelectedColumnId(e.target.value)}
+                      variant="standard"
+                      sx={{
+                        "& .MuiSelect-standard": {
+                          backgroundColor: "rgba(255, 255, 255, 0.05)",
+                          color: "gray",
+                          fontWeight: "600",
+                          padding: "0.5rem",
+                        }  
+                      }}
+                      >
+                          {
+                            context!.columns.map((column) => {
+                              return (
+                                <MenuItem value={column.Id} style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>{column.Name}</MenuItem>
+                              )
+                            })
+                          }
+                      </Select>
+                    </FormControl>
+                  <button onClick={DeleteColumn} className="bg-button text-sm p-3 px-2 rounded-3xl">Delete Column</button>
+                  <button onClick={() => setShowDeleteColumnModal(false)} className="text-sm p-3 px-2 rounded-3xl border border-gray-500 hover:opacity-90">Cancel</button>
+              </Box>
+            </Modal>
+
+            <ToastContainer />
+
+            {/* Main Content */}
             <Box className="main-content min-w-[78vw] max-w-[100vw] overflow-auto absolute top-[15vh] left-[22vw] h-[80vh] pl-4 pt-4 flex gap-6">
                 {
                   context!.columns.map((column, index) => {
@@ -416,7 +537,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
                   
                   <Box className="flex flex-col gap-2">
                     <label className={`font-semibold text-sm ${context!.mode === "dark" ? "text-white" : "text-black"}`}>Subtasks</label>
-                    <Box className="flex flex-col items-center p-1 gap-2 overflow-y-auto scrollbar-hidden max-h-[5.2rem] rounded-lg bg-[rgba(0,0,0,0.2)]">
+                    <Box className="flex flex-col items-center p-1 gap-2 overflow-y-auto max-h-[5.2rem] rounded-lg bg-[rgba(0,0,0,0.2)]">
                       {
                         [...Array(numberOfSubtasks)].map((_, index) => (
                           <Box className="flex gap-2 subtasks" key={index} id={index.toString()}>

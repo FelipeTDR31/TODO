@@ -53,11 +53,10 @@ export default function Task ({mode, id, columnId, name, description, subtasks} 
     useEffect(() => {
         interact(".draggableTask").draggable({
             onmove: (event : InteractEvent) => {
-                position.x += event.dx
-                position.y += event.dy
+                position.x += event.dx * 0.5
+                position.y += event.dy * 0.5
                 event.target.style.transform = `translate(${position.x}px, ${position.y}px)`
                 event.target.style.transition = "none"
-                event.target.removeEventListener("click", handleSetShowDetails)
             }
             , onend: (event : InteractEvent) => {
                 event.target.style.transform = `translate(0px, 0px)`
@@ -65,6 +64,7 @@ export default function Task ({mode, id, columnId, name, description, subtasks} 
                 const column = event.relatedTarget?.parentElement
                 if (column !=undefined && column.id != `column-${columnId}` && id == Number(idTaskElement)) {
                     try {
+                        event.target.removeEventListener("click", handleSetShowDetails)
                         updateTask(id, name, description, Number(column.id.split("-")[1]))
                         .then(async () => context?.setColumns(await getColumns(context?.selectedTable?.id || 0)))
                     } catch (error) {

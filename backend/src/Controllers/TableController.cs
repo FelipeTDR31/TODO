@@ -54,12 +54,15 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTable(int id, Table table)
         {
-            if (id != table.Id)
+            var tableToUpdate = await _context.Table.FindAsync(id);
+            var tableNameExists = _context.Table.Any(t => t.Name == table.Name && t.Id != id);
+            if (tableToUpdate == null || tableNameExists)
             {
                 return BadRequest();
             }
 
-            _context.Entry(table).State = EntityState.Modified;
+            tableToUpdate.Name = table.Name;
+            _context.Entry(tableToUpdate).State = EntityState.Modified;
 
             try
             {

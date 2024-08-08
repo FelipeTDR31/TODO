@@ -44,10 +44,11 @@ export const deleteTable = async (id: number) => {
 }
 
 
-export const updateTable = async (id: number, name: string) : Promise<Table> => {
+export const updateTable = async (id: number, name: string, userId: number) : Promise<Table> => {
     return axios
         .put(`http://localhost:5002/api/Table/${id}`, {
-            name
+            name,
+            userId
         },{
             headers:{
                 Authorization: `Bearer ${localStorage.getItem("token")}`
