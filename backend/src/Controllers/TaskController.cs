@@ -19,9 +19,31 @@ namespace backend.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Get all tasks in a column
+        /// </summary>
+        /// <param name="columnId">Id of the column</param>
+        /// <returns>List of tasks in the column</returns>
+        /// <response code="200">Returns the list of tasks in the column</response>
+        /// <response code="400">If columnId is less than or equal to zero</response>
+        /// <response code="404">If column does not exists</response>
         [HttpGet("{columnId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<Models.Task>>> GetTasks(int columnId)
         {
+            if (columnId <= 0)
+            {
+                return BadRequest("ColumnId must be greater than zero.");
+            }
+
+            var column = await _context.Column.FindAsync(columnId);
+            if (column == null)
+            {
+                return NotFound();
+            }
+
             var tasks = await _context.Task
                 .Include(t => t.Subtasks)
                 .Where(t => t.ColumnId == columnId)
@@ -33,14 +55,31 @@ namespace backend.Controllers
             return Ok(JsonSerializer.Serialize(tasks, options));
         }
 
+        /// <summary>
+        /// Get a task by its id
+        /// </summary>
+        /// <param name="taskId">Id of the task</param>
+        /// <param name="columnId">Id of the column</param>
+        /// <returns>Task if found</returns>
+        /// <response code="200">Returns the task if found</response>
+        /// <response code="400">If taskId or columnId is less than or equal to zero</response>
+        /// <response code="404">If task or column does not exists</response>
         [HttpGet("{columnId}/{taskId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Models.Task>> GetTask(int taskId, int columnId)
         {
+            if (taskId <= 0 || columnId <= 0)
+            {
+                return BadRequest("TaskId and columnId must be greater than zero.");
+            }
+
             var task = await _context.Task.Where(t => t.Id == taskId && t.ColumnId == columnId).FirstOrDefaultAsync();
 
             if (task == null)
             {
-                return NotFound();
+                return NotFound("Task or column does not exists.");
             }
 
             return task;
@@ -49,6 +88,31 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Models.Task>> PostTask(Models.Task task)
         {
+            if (task == null)
+            {
+                return BadRequest("Task cannot be null.");
+            }
+
+            if (task.Id != 0)
+            {
+                return BadRequest("Task ID should be 0 when creating a new task.");
+            }
+
+            if (task.ColumnId <= 0)
+            {
+                return BadRequest("ColumnId must be greater than zero.");
+            }
+
+            if (task.Name == null || task.Name.Length == 0)
+            {
+                return BadRequest("Task name cannot be null or empty.");
+            }
+
+            if (task.Description == null)
+            {
+                task.Description = string.Empty;
+            }
+
             _context.Task.Add(task);
             await _context.SaveChangesAsync();
             var returnedTask = CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
@@ -62,10 +126,30 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTask(int id, Models.Task task)
         {
+            if (task == null)
+            {
+                return BadRequest("Task cannot be null.");
+            }
+
+            if (id != task.Id)
+            {
+                return BadRequest("Task id does not match the one in the request.");
+            }
+
+            if (task.ColumnId <= 0)
+            {
+                return BadRequest("ColumnId must be greater than zero.");
+            }
+
+            if (task.Name == null || task.Name.Length == 0)
+            {
+                return BadRequest("Task name cannot be null or empty.");
+            }
+
             var taskToUpdate = await _context.Task.FindAsync(id);
             if (taskToUpdate == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             taskToUpdate.ColumnId = task.ColumnId;
@@ -96,6 +180,11 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest("Id must be greater than zero.");
+            }
+
             var task = await _context.Task.FindAsync(id);
             if (task == null)
             {

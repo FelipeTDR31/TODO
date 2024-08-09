@@ -62,8 +62,11 @@ namespace backend.Controllers
             if (subtaskToUpdate == null)
             {
                 return BadRequest();
-            }else{
-                subtaskToUpdate.IsDone = subtask.IsDone;
+            }
+
+            subtaskToUpdate.IsDone = subtask.IsDone;
+            if (subtask.Description != null && subtask.Description.Length > 0) {
+                subtaskToUpdate.Description = subtask.Description;
             }
 
             _context.Entry(subtaskToUpdate).State = EntityState.Modified;

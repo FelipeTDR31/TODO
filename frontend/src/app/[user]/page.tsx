@@ -506,7 +506,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
               onClose={() => setShowAddNewTask(false)}
               keepMounted
             >
-              <Box className={`flex flex-col p-5 gap-4 absolute top-[5vh] left-[35vw] w-[30vw] h-[90vh] z-10 rounded-md ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+              <Box className={`flex flex-col p-5 gap-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-fit max-h-fit z-10 rounded-md ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <h1 className={`font-semibold text-xl ${context!.mode === "dark" ? "text-white" : "text-black"}`}>New Task</h1>
                 <form className="flex flex-col gap-3">
                   <Box className="flex flex-col gap-2">
@@ -589,7 +589,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
               onClose={() => setShowBoardCreation(false)}
               keepMounted
             >
-              <Box className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-[30vh] left-[35vw] z-10 rounded-md ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+              <Box className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 rounded-md ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <Input placeholder="Board Name" type="text" id="boardName" name="boardName" className="w-[20rem]" onKeyDown={(e) => {e.key === "Enter" ? createBoard() : null}} />
                 <button onClick={createBoard} className="bg-button font-bold text-base p-2 rounded-3xl w-full">Create Board</button>
               </Box>

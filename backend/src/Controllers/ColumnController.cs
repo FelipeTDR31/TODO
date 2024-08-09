@@ -22,18 +22,39 @@ namespace backend.Controllers
         [HttpGet("{tableId}")]
         public async Task<ActionResult<IEnumerable<Column>>> GetColumns(int tableId)
         {
-            var returnedColumns = await _context.Column.Include(x => x.Tasks).ThenInclude(x => x.Subtasks).Where(x => x.TableId == tableId).ToListAsync();
+            if (tableId <= 0)
+            {
+                return BadRequest("TableId must be greater than zero.");
+            }
+
+            var columns = await _context.Column.Include(x => x.Tasks).ThenInclude(x => x.Subtasks).Where(x => x.TableId == tableId).ToListAsync();
+
+            if (columns == null || columns.Count == 0)
+            {
+                return NotFound();
+            }
             var options = new JsonSerializerOptions
             {
                 ReferenceHandler = ReferenceHandler.Preserve
             };
-            return Ok(JsonSerializer.Serialize(returnedColumns, options));
+
+            return Ok(JsonSerializer.Serialize(columns, options));
         }
 
         // GET: api/Column/5
         [HttpGet("{tableId}/{columnId}")]
         public async Task<ActionResult<Column>> GetColumn(int tableId, int columnId)
         {
+            if (tableId <= 0)
+            {
+                return BadRequest("TableId must be greater than zero.");
+            }
+
+            if (columnId <= 0)
+            {
+                return BadRequest("ColumnId must be greater than zero.");
+            }
+
             var column = await _context.Column.Where(x => x.TableId == tableId && x.Id == columnId).FirstOrDefaultAsync();
 
             if (column == null)
@@ -48,6 +69,33 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Column>> PostColumn(Column column)
         {
+            if (column == null)
+            {
+                return BadRequest("Column is null");
+            }
+
+            if (column.Id <= 0)
+            {
+                return BadRequest("ColumnId must be greater than zero.");
+            }
+
+            if (string.IsNullOrWhiteSpace(column.Name))
+            {
+                return BadRequest("Column name cannot be empty");
+            }
+
+            if (column.TableId <= 0)
+            {
+                return BadRequest("TableId must be greater than zero.");
+            }
+
+            var tableExists = await _context.Table.AnyAsync(t => t.Id == column.TableId);
+
+            if (!tableExists)
+            {
+                return BadRequest("Table does not exists");
+            }
+
             _context.Column.Add(column);
             await _context.SaveChangesAsync();
 
@@ -58,9 +106,31 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutColumn(int id, Column column)
         {
+            if (column == null)
+            {
+                return BadRequest("Column is null");
+            }
+
             if (id != column.Id)
             {
-                return BadRequest();
+                return BadRequest("Column id does not match the one in the request.");
+            }
+
+            if (column.TableId <= 0)
+            {
+                return BadRequest("TableId must be greater than zero.");
+            }
+
+            if (string.IsNullOrWhiteSpace(column.Name))
+            {
+                return BadRequest("Column name cannot be empty");
+            }
+
+            var tableExists = await _context.Table.AnyAsync(t => t.Id == column.TableId);
+
+            if (!tableExists)
+            {
+                return BadRequest("Table does not exists");
             }
 
             _context.Entry(column).State = EntityState.Modified;
@@ -88,6 +158,11 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteColumn(int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest("ColumnId must be greater than zero.");
+            }
+
             var column = await _context.Column.FindAsync(id);
             if (column == null)
             {
@@ -95,6 +170,22 @@ namespace backend.Controllers
             }
 
             _context.Column.Remove(column);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ColumnExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
             await _context.SaveChangesAsync();
 
             return NoContent();

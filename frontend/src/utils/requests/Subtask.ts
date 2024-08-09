@@ -46,10 +46,11 @@ export const createSubtask = async (taskID: number, description: string) : Promi
         });
 }
 
-export const updateSubtask = async (id: number, isDone: boolean) : Promise<Subtask> => {
+export const updateSubtask = async (id: number, isDone: boolean, description?: string) : Promise<Subtask> => {
     return axios
         .put(`http://localhost:5002/api/Subtask/${id}`, {
-            isDone
+            isDone,
+            description
         }, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,

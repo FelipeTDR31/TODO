@@ -26,7 +26,12 @@ namespace backend.Controllers
         [HttpGet("{name}")]
         public async Task<ActionResult<User>> GetUser(string name)
         {
-            var user = await _context.User.FirstAsync(u => u.Name == name);
+            if (string.IsNullOrEmpty(name))
+            {
+                return BadRequest("Name is required");
+            }
+
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Name == name);
 
             if (user == null)
             {
@@ -41,7 +46,23 @@ namespace backend.Controllers
         {
             if (id != user.Id)
             {
-                return BadRequest();
+                return BadRequest("Invalid ID");
+            }
+
+            // Validate the user
+            if (string.IsNullOrEmpty(user.Name))
+            {
+                return BadRequest("Name is required");
+            }
+
+            if (string.IsNullOrEmpty(user.Email))
+            {
+                return BadRequest("Email is required");
+            }
+
+            if (string.IsNullOrEmpty(user.Password))
+            {
+                return BadRequest("Password is required");
             }
 
             _context.Entry(user).State = EntityState.Modified;
