@@ -1,20 +1,23 @@
-using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using backend.Models;
 using Microsoft.IdentityModel.Tokens;
+using Isopoh.Cryptography.Argon2;
+using System.Security.Cryptography;
+using Isopoh.Cryptography.SecureArray;
+using System.Text.Json;
 
 namespace backend.Data
 {
-    public class TokenGenerator
+    public class SecurityHandler
     {
         private static SymmetricSecurityKey? securityKey;
+        private static readonly string secret = "keq2k213kdaqwkoeq2oekqpoead43rw5643345";
 
-        public TokenGenerator()
+        public SecurityHandler()
         {
             // the security key is used to sign the token
-            var secret = "keq2k213kdaqwkoeq2oekqpoead43rw5643345";
             securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         }
 
@@ -24,6 +27,7 @@ namespace backend.Data
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var jwtToken = tokenHandler.ReadJwtToken(token).ToString();
+
                 var validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -41,17 +45,23 @@ namespace backend.Data
                     }
                 };
 
-                var principal = tokenHandler.ValidateToken(jwtToken, validationParameters, out var validatedToken);
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
                 if (principal.Identity!=null && principal.Identity.IsAuthenticated)
                 {
                     return true;
                 }
+                else
+                {
+                    return false;
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error validating token: {ex.Message}");
                 // do nothing
             }
 
+            Console.WriteLine("Failed to validate token");
             return false;
         }
 
@@ -73,6 +83,18 @@ namespace backend.Data
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);
+        }
+
+        public static string HashPassword(string password)
+        {
+            var passwordHash = Argon2.Hash(Encoding.UTF8.GetBytes(password), Encoding.UTF8.GetBytes(secret), 5);
+            return passwordHash;
+        }
+
+        public static bool VerifyPassword(string password, string hash)
+        {
+            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+            return Argon2.Verify(hash, passwordBytes, Encoding.UTF8.GetBytes(secret));
         }
     }
 }

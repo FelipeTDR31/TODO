@@ -110,7 +110,13 @@ namespace backend.Controllers
             {
                 return BadRequest("Invalid username or password");
             }
-            var tokenGenerator = new TokenGenerator();
+
+            if (!SecurityHandler.VerifyPassword(user.Password, foundUser.Password))
+            {
+                return BadRequest("Invalid username or password");
+            }
+
+            var tokenGenerator = new SecurityHandler();
             var token = tokenGenerator.GenerateToken(foundUser);
 
             return Ok(new { token, foundUser });
@@ -124,13 +130,20 @@ namespace backend.Controllers
                 return Conflict();
             }
 
-            _context.User.Add(user);
+            var newUser = new User
+            {
+                Name = user.Name,
+                Email = user.Email,
+                Password = SecurityHandler.HashPassword(user.Password)
+            };
+
+            _context.User.Add(newUser);
             await _context.SaveChangesAsync();
 
-            var tokenGenerator = new TokenGenerator();
-            var token = tokenGenerator.GenerateToken(user);
+            var tokenGenerator = new SecurityHandler().GenerateToken;
+            var token = tokenGenerator(newUser);
 
-            return Ok(new { user, token });
+            return Ok(new { newUser, token });
         }
 
         private bool UserExists(int id)

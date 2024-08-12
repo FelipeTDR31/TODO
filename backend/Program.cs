@@ -52,6 +52,8 @@ app.UseHttpsRedirection();
 // Use the routing middleware to route HTTP requests to the appropriate handlers.
 app.UseRouting();
 
+app.UseMiddleware<Middleware>();
+
 // Use the controller middleware to handle HTTP requests.
 app.MapControllers();
 
@@ -59,8 +61,6 @@ app.MapControllers();
 app.UseAuthorization();
 
 app.UseCors();
-
-app.UseMiddleware<Middleware>();
 
 // Start the web server and begin accepting HTTP requests.
 app.Run();

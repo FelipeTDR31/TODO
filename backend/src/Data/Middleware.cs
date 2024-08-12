@@ -31,15 +31,13 @@ namespace backend.Data
 
                 var token = context.Request.Headers["Authorization"].ToString().Split(" ")[1];
 
-                TokenGenerator tokenGenerator = new TokenGenerator();
-
                 var applicationContext = context.RequestServices.GetService<ApplicationContext>();
                 if(applicationContext != null)
                 {
-                    if (TokenGenerator.ValidateToken(token, applicationContext))
+                    if (!SecurityHandler.ValidateToken(token, applicationContext))
                     {
                         context.Response.StatusCode = 401;
-                        await context.Response.WriteAsync("Unauthorized");
+                        await context.Response.WriteAsync("Unauthorized token");
                         return;
                     }
                 }
