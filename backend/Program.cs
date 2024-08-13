@@ -49,6 +49,8 @@ if (app.Environment.IsDevelopment())
 // Redirect HTTP requests to HTTPS.
 app.UseHttpsRedirection();
 
+app.UseCors();
+
 // Use the routing middleware to route HTTP requests to the appropriate handlers.
 app.UseRouting();
 
@@ -59,8 +61,6 @@ app.MapControllers();
 
 // Use the authorization middleware to authorize HTTP requests.
 app.UseAuthorization();
-
-app.UseCors();
 
 // Start the web server and begin accepting HTTP requests.
 app.Run();

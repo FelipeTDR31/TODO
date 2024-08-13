@@ -14,6 +14,8 @@ namespace backend.Data
     {
         private static SymmetricSecurityKey? securityKey;
         private static readonly string secret = "keq2k213kdaqwkoeq2oekqpoead43rw5643345";
+        private static readonly RandomNumberGenerator Rng = RandomNumberGenerator.Create();
+
 
         public SecurityHandler()
         {
@@ -87,14 +89,36 @@ namespace backend.Data
 
         public static string HashPassword(string password)
         {
-            var passwordHash = Argon2.Hash(Encoding.UTF8.GetBytes(password), Encoding.UTF8.GetBytes(secret), 5);
-            return passwordHash;
+            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+            byte[] salt = new byte[16];
+            Rng.GetBytes(salt);
+
+            var config = new Argon2Config
+            {
+                Type = Argon2Type.DataIndependentAddressing,
+                Version = Argon2Version.Nineteen,
+                TimeCost = 10,
+                MemoryCost = 32768,
+                Lanes = 5,
+                Threads = Environment.ProcessorCount,
+                Password = passwordBytes,
+                Salt = salt,
+                Secret = Encoding.UTF8.GetBytes(secret),
+                HashLength = 20 
+            };
+            var argon2A = new Argon2(config);
+            string hashString;
+            using(SecureArray<byte> hashA = argon2A.Hash())
+            {
+                hashString = config.EncodeString(hashA.Buffer);
+            }
+            return hashString;
         }
 
         public static bool VerifyPassword(string password, string hash)
         {
             byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
-            return Argon2.Verify(hash, passwordBytes, Encoding.UTF8.GetBytes(secret));
+            return Argon2.Verify(hash, passwordBytes, Encoding.UTF8.GetBytes(secret), Environment.ProcessorCount);
         }
     }
 }

@@ -126,12 +126,13 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTask(int id, Models.Task task)
         {
-            if (task == null)
+            var foundTask = await _context.Task.FindAsync(id);
+            if (task == null || foundTask == null)
             {
                 return BadRequest("Task cannot be null.");
             }
 
-            if (id != task.Id)
+            if (id != foundTask.Id)
             {
                 return BadRequest("Task id does not match the one in the request.");
             }

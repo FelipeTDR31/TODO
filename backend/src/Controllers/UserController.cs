@@ -105,7 +105,7 @@ namespace backend.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(User user)
         {
-            var foundUser = await _context.User.FirstAsync(u => u.Email == user.Email && u.Password == user.Password);
+            var foundUser = await _context.User.FirstAsync(u => u.Email == user.Email);
             if (foundUser == null)
             {
                 return BadRequest("Invalid username or password");

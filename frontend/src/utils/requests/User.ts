@@ -29,7 +29,7 @@ export const register = async (name: string, email: string, password: string) : 
             password,
         })
         .then((response) => {
-            return { token: response.data.token, user: response.data.user };
+            return { token: response.data.token, user: response.data.newUser };
         });
 }
 

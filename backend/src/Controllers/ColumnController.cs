@@ -31,7 +31,7 @@ namespace backend.Controllers
 
             if (columns == null || columns.Count == 0)
             {
-                return NotFound();
+                return NoContent();
             }
             var options = new JsonSerializerOptions
             {
@@ -72,11 +72,6 @@ namespace backend.Controllers
             if (column == null)
             {
                 return BadRequest("Column is null");
-            }
-
-            if (column.Id <= 0)
-            {
-                return BadRequest("ColumnId must be greater than zero.");
             }
 
             if (string.IsNullOrWhiteSpace(column.Name))

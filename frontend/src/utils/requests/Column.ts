@@ -33,7 +33,12 @@ export const getColumns = async (TableID : number) : Promise<Column[]> => {
             }
         })
         .then((response) => {
-            return response.data.$values;
+            if (response.status === 200) {
+                return response.data.$values;
+            }else{
+                let a : Column[] = [];
+                return a;
+            }
         });
 }
 
