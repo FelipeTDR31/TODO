@@ -28,7 +28,7 @@ export default function LoginPage() {
           <Input type="password" id="password" name="password" /> 
           <button type="submit" className="bg-button font-bold text-base p-2 rounded mt-3">Login</button>
         </form>
-        <button className="text-gray-400 font-bold text-sm" onClick={() => router.push('/register')}>Don't have an account? Sign Up</button>
+        <button className="text-gray-400 font-bold text-sm" onClick={() => router.push('/register')}>Don&apos;t have an account? Sign Up</button>
       </div>
     </main>
   );

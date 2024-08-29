@@ -465,9 +465,9 @@ export default function UserPage({ params }: { params: { user: string } }) {
                       }}
                       >
                           {
-                            context!.columns.map((column) => {
+                            context!.columns.map((column, index) => {
                               return (
-                                <MenuItem value={column.Id} style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>{column.Name}</MenuItem>
+                                <MenuItem key={index} value={column.Id} style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>{column.Name}</MenuItem>
                               )
                             })
                           }
@@ -570,9 +570,9 @@ export default function UserPage({ params }: { params: { user: string } }) {
                       }}
                       >
                           {
-                            context!.columns.map((column) => {
+                            context!.columns.map((column, key) => {
                               return (
-                                <MenuItem value={column.Id} style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>{column.Name}</MenuItem>
+                                <MenuItem key={key} value={column.Id} style={{color: "gray", fontWeight: "600", padding: "0.3rem"}}>{column.Name}</MenuItem>
                               )
                             })
                           }

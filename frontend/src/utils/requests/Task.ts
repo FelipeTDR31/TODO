@@ -7,7 +7,7 @@ export interface Task{
     Description: string;
     Order: number;
     ColumnId: number;
-    Subtasks?: Subtask[];
+    Subtasks?: any;
 }
 
 export const getTasks = async (ColumnId: number) : Promise<Task[]> => {

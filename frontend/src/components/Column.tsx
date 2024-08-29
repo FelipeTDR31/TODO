@@ -33,9 +33,9 @@ export default function Column({mode, name, boardId, columnId, tasks} : {mode: '
             <Box className={`w-full min-h-[60vh] -mt-6 flex flex-col gap-6 taskDropzone`}>
                 {
                     tasks != undefined ? 
-                    tasks.map((task) => {
+                    tasks.map((task, key) => {
                         if(task.ColumnId == columnId) {
-                        return <Task mode={mode} columnId={columnId} id={task.Id} name={task.Name} description={task.Description} subtasks={task.Subtasks!.$values} />
+                        return <Task key={key} mode={mode} columnId={columnId} id={task.Id} name={task.Name} description={task.Description} subtasks={task.Subtasks!.$values} />
                         }
                     }) 
                     : <></>

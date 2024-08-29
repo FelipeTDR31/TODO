@@ -6,7 +6,7 @@ export interface Column {
     Name: string;
     Position: number;
     TableId : number;
-    Tasks?: Task[];
+    Tasks?: any;
 }
 
 export const createColumn = async (name: string, position : number, TableID : number) : Promise<Column> => {
