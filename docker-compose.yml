@@ -5,7 +5,8 @@ services:
       - "5002:5002"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=db;Database=todo_app;User=root;Password=;
+      - ASPNETCORE_URLS=http://+:5002
+      - ConnectionStrings__DefaultConnection=Server=db;Database=todo_app;User=root;Password=password;
     volumes:
       - ./backend:/app
   frontend:
@@ -16,3 +17,14 @@ services:
       - backend
     volumes:
       - ./frontend:/app
+  db:
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=todo_app
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=password

@@ -12,10 +12,17 @@ export default function LoginPage() {
     const formData = new FormData(form);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+
+    if (!email || !password) {
+      alert('Email and password are required');
+      return;
+    }
+
     const response = await login(email, password);
     localStorage.setItem('token', response.token);
     router.push(`/${response.foundUser.name}`);
   }
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">

@@ -17,12 +17,6 @@ namespace backend.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
-        {
-            return await _context.User.ToListAsync();
-        }
-
         [HttpGet("{name}")]
         public async Task<ActionResult<User>> GetUser(string name)
         {
@@ -41,31 +35,37 @@ namespace backend.Controllers
             return user;
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, User user)
+        public class updateRequest
         {
-            if (id != user.Id)
+            public string? email { get; set; }
+            public string? oldPassword { get; set; }
+            public string? newPassword { get; set; }
+        }
+        [HttpPut("{id}/change")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] updateRequest request)
+        {
+            var foundUser = await _context.User.FindAsync(id);
+            if (foundUser == null)
             {
-                return BadRequest("Invalid ID");
+                return NotFound();
             }
 
-            // Validate the user
-            if (string.IsNullOrEmpty(user.Name))
+            if (!string.IsNullOrEmpty(request.oldPassword) && !SecurityHandler.VerifyPassword(request.oldPassword, foundUser.Password))
             {
-                return BadRequest("Name is required");
+                return BadRequest("Invalid old password");
             }
 
-            if (string.IsNullOrEmpty(user.Email))
+            if (!string.IsNullOrEmpty(request.newPassword))
             {
-                return BadRequest("Email is required");
+                foundUser.Password = SecurityHandler.HashPassword(request.newPassword);
             }
 
-            if (string.IsNullOrEmpty(user.Password))
+            if (!string.IsNullOrEmpty(request.email))
             {
-                return BadRequest("Password is required");
+                foundUser.Email = request.email;
             }
 
-            _context.Entry(user).State = EntityState.Modified;
+            _context.Entry(foundUser).State = EntityState.Modified;
 
             try
             {
@@ -108,12 +108,12 @@ namespace backend.Controllers
             var foundUser = await _context.User.FirstAsync(u => u.Email == user.Email);
             if (foundUser == null)
             {
-                return BadRequest("Invalid username or password");
+                return BadRequest("Invalid email or password");
             }
 
             if (!SecurityHandler.VerifyPassword(user.Password, foundUser.Password))
             {
-                return BadRequest("Invalid username or password");
+                return BadRequest("Invalid email or password");
             }
 
             var tokenGenerator = new SecurityHandler();

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { createSubtask, Subtask } from "./Subtask";
+import { Subtask } from "./Subtask";
 
 export interface Task{
     Id: number;

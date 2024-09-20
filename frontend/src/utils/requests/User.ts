@@ -44,3 +44,31 @@ export const getUser = async (name : string ) : Promise<User> => {
             return response.data;
         });
 }
+
+export const updateUser = async (id: number, email : string | null, oldPassword: string | null, newPassword: string | null) : Promise<User> => {
+    return axios
+        .put(`http://localhost:5002/api/User/${id}/change`, {
+            email,
+            oldPassword,
+            newPassword
+        }, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
+        })
+        .then((response) => {
+            return response.data;
+        });
+}
+
+export const deleteUser = async (id: number) => {
+    return axios
+        .delete(`http://localhost:5002/api/User/${id}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
+        })
+        .then((response) => {
+            return response.data;
+        });
+}

@@ -14,6 +14,17 @@ export default function RegisterPage() {
             email: string,
             password: string
         };
+
+        if (!username || !email || !password) {
+            alert('Username, email and password are required');
+            return;
+        }
+
+        if (password.length < 8) {
+            alert('Password must be at least 8 characters');
+            return;
+        }
+
         const response = await register(username, email, password);
         localStorage.setItem('token', response.token);
         createTable("Default Board", response.user.id);

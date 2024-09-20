@@ -19,18 +19,7 @@ namespace backend.Controllers
             _context = context;
         }
 
-        /// <summary>
-        /// Get all tasks in a column
-        /// </summary>
-        /// <param name="columnId">Id of the column</param>
-        /// <returns>List of tasks in the column</returns>
-        /// <response code="200">Returns the list of tasks in the column</response>
-        /// <response code="400">If columnId is less than or equal to zero</response>
-        /// <response code="404">If column does not exists</response>
         [HttpGet("{columnId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<Models.Task>>> GetTasks(int columnId)
         {
             if (columnId <= 0)
@@ -55,19 +44,7 @@ namespace backend.Controllers
             return Ok(JsonSerializer.Serialize(tasks, options));
         }
 
-        /// <summary>
-        /// Get a task by its id
-        /// </summary>
-        /// <param name="taskId">Id of the task</param>
-        /// <param name="columnId">Id of the column</param>
-        /// <returns>Task if found</returns>
-        /// <response code="200">Returns the task if found</response>
-        /// <response code="400">If taskId or columnId is less than or equal to zero</response>
-        /// <response code="404">If task or column does not exists</response>
         [HttpGet("{columnId}/{taskId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Models.Task>> GetTask(int taskId, int columnId)
         {
             if (taskId <= 0 || columnId <= 0)

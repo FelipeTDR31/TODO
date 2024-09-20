@@ -12,7 +12,7 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import Column from "@/components/Column";
 import { Input } from "@/utils/Tags/Input";
 import { useRouter } from "next/navigation";
-import { getUser } from "@/utils/requests/User";
+import { deleteUser, getUser, updateUser } from "@/utils/requests/User";
 import { deleteTable, getTables, updateTable } from "@/utils/requests/Table";
 import { createColumn, deleteColumn, getColumns } from "@/utils/requests/Column";
 import { Subtask } from "@/utils/requests/Subtask";
@@ -36,6 +36,11 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const [showBoardCreation, setShowBoardCreation] = useState(false);
     const [showDrawer, setShowDrawer] = useState(true);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [showUserOptions, setShowUserOptions] = useState(false);
+    const [showUserAccountInfo, setShowUserAccountInfo] = useState(false);
+    const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [showEmailModal, setShowEmailModal] = useState(false);
     const [status, setStatus] = useState<string>("");
     const [input, setInput] = useState<string | undefined>();
     const [showDeleteBoardModal, setShowDeleteBoardModal] = useState(false);
@@ -49,7 +54,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
     useEffect(() => {
       const token = localStorage.getItem('token');
       if (!token) {
-          //router.push("/login");
+          router.push("/login");
       }
 
       async function fetchUser() {
@@ -141,6 +146,32 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const createBoard = async () => {
       const boardName = document.getElementById("boardName") as HTMLInputElement
       const name = boardName.value
+      if (name === "") {
+        toast.error("Name is required", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: "colored",
+        });
+        return;
+      }
+      if (name.length > 50) {
+        toast.error("Name must be less than 50 characters", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: "colored",
+        });
+        return;
+      }
       const board = await createTable(name,user!.id)
       if (board) {
         setBoards([...boards, board]);
@@ -177,17 +208,41 @@ export default function UserPage({ params }: { params: { user: string } }) {
     function updateBoard() {
       let updateInput = document.getElementById("updateBoard") as HTMLInputElement
       let name = updateInput.value
-      if (name !== "") {
-        updateTable(selectedTable!.id, name, user!.id)
-        .then(async () => {
-          let boards = await getTables(user!.id);
-          setSelectedTable(boards[boards.length - 1]);
-          setBoards(boards);
-          let columns = await getColumns(boards[boards.length - 1].id);
-          context!.setColumns(columns);
-          setShowUpdateBoardModal(false);
-        })
+      if (name === "") {
+        toast.error("Name is required", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: "colored",
+        });
+        return;
       }
+      if (name.length > 50) {
+        toast.error("Name must be less than 50 characters", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: "colored",
+        });
+        return;
+      }
+      updateTable(selectedTable!.id, name, user!.id)
+      .then(async () => {
+        let boards = await getTables(user!.id);
+        setSelectedTable(boards[boards.length - 1]);
+        setBoards(boards);
+        let columns = await getColumns(boards[boards.length - 1].id);
+        context!.setColumns(columns);
+        setShowUpdateBoardModal(false);
+      })
     }
 
     async function changeBoard (e : React.MouseEvent<HTMLButtonElement>) {
@@ -232,9 +287,40 @@ export default function UserPage({ params }: { params: { user: string } }) {
       }
     }
 
+    function handleAddTaskModal() {
+      if (context?.columns.length === 0) {
+        toast.error("Add a column first", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: "colored",
+        })
+      }else{
+        setShowAddNewTask(!showAddNewTask);
+      }
+    }
+
     function handleSelectChange(e : SelectChangeEvent)  {
-      setStatus(e.target.value);
-  }
+      const value = e.target.value;
+      if (value === "") {
+        toast.error("Status is required", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: "colored",
+        });
+      } else {
+        setStatus(e.target.value);
+      }
+    }
 
   function handleInputChange(e : React.ChangeEvent<HTMLInputElement>) {
     setInput(e.target.value);
@@ -322,15 +408,32 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const description = taskDescription.value;
     const subtasks = document.querySelectorAll(".subtasksInput") as NodeListOf<HTMLInputElement>;
     let subtasksArray : Subtask[] = [];
+    let hasError = false;
     for (let i = 0; i < subtasks.length; i++) {
       const e = subtasks[i].firstChild?.firstChild as HTMLInputElement;
-
-      subtasksArray.push({
-        Description: e.value,
-        IsDone: false,
-        Id: 0,
-        TaskId: 0
-      })
+      if (e.value === "") {
+        hasError = true;
+        toast.error("Subtask is required", {
+          position: "top-center",
+        });
+        break;
+      } else {
+        subtasksArray.push({
+          Description: e.value,
+          IsDone: false,
+          Id: 0,
+          TaskId: 0
+        })
+      }
+    }
+    if (name === "" || description === "") {
+      hasError = true;
+      toast.error("Name and description are required", {
+        position: "top-center",
+      });
+    }
+    if (hasError) {
+      return;
     }
     const order = 1;
     createTask(name, description, Number(status), order, subtasksArray)
@@ -340,6 +443,85 @@ export default function UserPage({ params }: { params: { user: string } }) {
       setShowAddNewTask(false);
     })
     
+  }
+
+  async function UpdateUser() {
+    const email = document.getElementById("changeEmail");
+    const password = document.getElementById("changePassword");
+    if (email && password===null) {
+      const newEmail = document.getElementById("newEmail") as HTMLInputElement;
+      const confirmNewEmail = document.getElementById("confirmNewEmail") as HTMLInputElement;
+      if (newEmail.value !== confirmNewEmail.value) {
+        toast.error("Emails do not match", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: "colored",
+        });
+        return;
+      }
+      if (!/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(newEmail.value)) {
+        toast.error("Email is not valid", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: "colored",
+        });
+        return;
+      }
+      updateUser(user!.id, newEmail.value, null , null)
+      setShowEmailModal(false)
+      window.location.reload();
+    }else if (email===null && password) {
+      const oldPassword = document.getElementById("oldPassword") as HTMLInputElement;
+      const newPassword = document.getElementById("newPassword") as HTMLInputElement;
+      const confirmNewPassword = document.getElementById("confirmNewPassword") as HTMLInputElement;
+      if (newPassword.value !== confirmNewPassword.value) {
+        toast.error("Passwords do not match", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: "colored",
+        });
+        return;
+      }
+      if (oldPassword.value.length < 8 || newPassword.value.length < 8) {
+        toast.error("Password must be at least 8 characters long", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: "colored",
+        });
+        return;
+      }
+      updateUser(user!.id, null, oldPassword.value, newPassword.value)
+      setShowPasswordModal(false)
+      window.location.reload();
+    }
+  }
+
+  async function DeleteUser() {
+    deleteUser(user!.id)
+    .then(() => {
+      localStorage.removeItem("token")
+      router.push("/login");
+    })
   }
 
     return (
@@ -352,7 +534,17 @@ export default function UserPage({ params }: { params: { user: string } }) {
              keepMounted
              >
               <Box className={`aside-content flex flex-col justify-around p-6 font-bold w-[22vw] h-screen ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
-                <h3 className={`text-3xl -ml-3 -mt-8 ${context!.mode === "dark" ? "text-white" : "text-black"}`}>{params.user} Kanban</h3>
+                <Box>
+                      <Button onClick={() => setShowUserOptions(!showUserOptions)} className="userOptions" style={{color: `${context!.mode === "dark" ? "white" : "black"}`, fontWeight: "bold", fontSize: "1.5rem"}}>{params.user} Kanban</Button>
+                      <Menu
+                        open={showUserOptions}
+                        onClose={() => setShowUserOptions(false)}
+                        anchorEl={document.querySelector(".userOptions")}
+                      >
+                        <MenuItem onClick={() => {setShowUserAccountInfo(true);setShowUserOptions(false)}} style={{color: "#645FC7", fontWeight: "600", padding: "0.5rem"}}>Manage Account</MenuItem>
+                        <MenuItem onClick={() => {setShowUserOptions(false); localStorage.removeItem("token"); router.push("/login")}} style={{color: "#645FC7", fontWeight: "600", padding: "0.5rem"}}>LogOut</MenuItem>
+                      </Menu>
+                </Box>
                 <Box className="flex flex-col h-1/2">
                     <h4 className="text-gray-400 text-sm">Your Boards {`(${boards.length})`}</h4>
                     <Box className="flex flex-col h-4/5 mt-2">
@@ -400,7 +592,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
             <Box className={`cBox absolute top-0 right-0 font-bold flex items-center justify-between p-5 border-b border-l border-gray-500 w-[78vw] h-[15vh] ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
                 <h1 className={`text-xl ${context!.mode === "dark" ? "text-white" : "text-black"}`}>Platform Launch</h1>
                 <Box className="flex gap-3 items-center">
-                    <button className="bg-button font-bold text-base p-3 px-4 rounded-3xl" onClick={() => {setShowAddNewTask(!showAddNewTask)}}>+ Add New Task</button>
+                    <button className="bg-button font-bold text-base p-3 px-4 rounded-3xl" onClick={handleAddTaskModal}>+ Add New Task</button>
                     <Box>
                       <Button onClick={() => setShowDropdown(!showDropdown)} className="dropdown">
                         <MoreVertIcon />
@@ -595,6 +787,58 @@ export default function UserPage({ params }: { params: { user: string } }) {
               </Box>
             </Modal>
             
+            {
+              user != null ?
+                <Modal
+                open={showUserAccountInfo}
+                onClose={() => setShowUserAccountInfo(false)}
+                keepMounted
+                >
+                  <Box className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 rounded-md ${context!.mode === "dark" ? "bg-secondary-dark text-white" : "bg-secondary-light text-black"}`}>
+                    <h1 className="text-2xl">User Account Info</h1>
+                    <p>Name: {user!.name}</p>
+                    <p>Email: {user!.email}</p>
+                    <button className="bg-button font-bold text-base p-2 rounded-3xl w-full" onClick={() => {setShowPasswordModal(true); setShowUserAccountInfo(false)}}>Change Password</button>
+                    <button className="bg-button font-bold text-base p-2 rounded-3xl w-full" onClick={() => {setShowEmailModal(true); setShowUserAccountInfo(false)}}>Change Email</button>
+                    <button className="text-[rgba(255,0,0,0.8)] border border-[rgba(255,0,0,0.8)] hover:opacity-70 font-bold text-base p-2 rounded-3xl w-full" onClick={() => {setShowDeleteAccountModal(true); setShowUserAccountInfo(false)}}>Delete Account</button>
+                  </Box>
+                </Modal>
+              : null
+            }
+
+            <Modal
+              open={showPasswordModal}
+              onClose={() => setShowPasswordModal(false)}
+            >
+              <Box className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 rounded-md ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+                <Input placeholder="Old Password" type="password" id="oldPassword" name="oldPassword" />
+                <Input placeholder="New Password" type="password" id="newPassword" name="newPassword" />
+                <Input placeholder="Confirm New Password" type="password" id="confirmNewPassword" name="confirmNewPassword" />
+                <button className="bg-button font-bold text-base p-2 rounded-3xl w-full" id="changePassword" onClick={() => UpdateUser()}>Change Password</button>
+              </Box>
+            </Modal>
+
+            <Modal
+              open={showEmailModal}
+              onClose={() => setShowEmailModal(false)}
+            >
+              <Box className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 rounded-md ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+                <Input placeholder="New Email" type="email" id="newEmail" name="newEmail" />
+                <Input placeholder="Confirm New Email" type="email" id="confirmNewEmail" name="confirmNewEmail" />
+                <button className="bg-button font-bold text-base p-2 rounded-3xl w-full" id="changeEmail" onClick={() => UpdateUser()}>Change Email</button>
+              </Box>
+            </Modal>
+
+            <Modal
+              open={showDeleteAccountModal}
+              onClose={() => setShowDeleteAccountModal(false)}
+            >
+              <Box className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 rounded-md ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+                <h1>Are you sure you want to delete your account?</h1>
+                <button className="bg-button font-bold text-base p-2 rounded-3xl w-full" id="deleteAccount" onClick={() => DeleteUser()}>Yes</button>
+                <button className="text-[rgba(255,0,0,0.8)] border border-[rgba(255,0,0,0.8)] hover:opacity-70 font-bold text-base p-2 rounded-3xl w-full" onClick={() => setShowDeleteAccountModal(false)}>No</button>
+              </Box>
+            </Modal>
         </Box>
     );
 }

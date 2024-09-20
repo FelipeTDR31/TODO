@@ -27,20 +27,7 @@ namespace backend.Controllers
             }
 
             return tables;
-        }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Table>> GetTable(int id)
-        {
-            var table = await _context.Table.FindAsync(id);
-
-            if (table == null)
-            {
-                return NotFound();
-            }
-
-            return table;
-        }
+        } 
 
         [HttpPost]
         public async Task<ActionResult<Table>> CreateTable(Table table)
@@ -68,7 +55,7 @@ namespace backend.Controllers
             _context.Table.Add(table);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetTable), new { id = table.Id }, table);
+            return Ok(table);
         }
 
         [HttpPut("{id}")]

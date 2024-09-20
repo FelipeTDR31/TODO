@@ -19,18 +19,6 @@ export const getTables = async (userId: number) : Promise<Table[]> => {
         });
 }
 
-export const getTable = async (id: number) : Promise<Table> => {
-    return axios
-        .get(`http://localhost:5002/api/Table/${id}`, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            }
-        })
-        .then((response) => {
-            return response.data;
-        });
-}
-
 
 export const deleteTable = async (id: number) => {
     return axios
