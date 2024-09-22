@@ -1,6 +1,7 @@
 using backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
+using backend.Controllers;
 
 
 // This is the entry point of the web application. It creates a new WebApplication instance
@@ -12,6 +13,8 @@ builder.Services.AddEndpointsApiExplorer();
 
 // Add Swagger generator, which generates documentation for the APIs of the application.
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSignalR();
 
 // Get the connection string for the default database connection from the configuration.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -29,7 +32,8 @@ builder.Services.AddCors(options =>
    options.AddDefaultPolicy(builder =>{
        builder.WithOrigins("http://localhost:3000")
        .AllowAnyHeader()
-       .AllowAnyMethod();
+       .AllowAnyMethod()
+       .AllowCredentials();
    });
 });
 
@@ -53,6 +57,8 @@ app.UseCors();
 
 // Use the routing middleware to route HTTP requests to the appropriate handlers.
 app.UseRouting();
+
+app.MapHub<TableHub>("/tableHub");
 
 app.UseMiddleware<Middleware>();
 
