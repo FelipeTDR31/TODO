@@ -33,7 +33,7 @@ export const register = async (name: string, email: string, password: string) : 
         });
 }
 
-export const getUser = async (name : string ) : Promise<User> => {
+export const getUser = async (name : string ) : Promise<User | null> => {
     return axios
         .get(`http://localhost:5002/api/User/${name}`, {
             headers: {
@@ -42,6 +42,9 @@ export const getUser = async (name : string ) : Promise<User> => {
         })
         .then((response) => {
             return response.data;
+        })
+        .catch((error) => {
+            return null;
         });
 }
 
@@ -70,5 +73,22 @@ export const deleteUser = async (id: number) => {
         })
         .then((response) => {
             return response.data;
+        });
+}
+
+export const getUserNames = async (userName : string) : Promise<string[]> => {
+    return axios
+        .post(`http://localhost:5002/names`, {
+            name: userName
+        }, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
+        })
+        .then((response) => {
+            return response.data;
+        })
+        .catch((error) => {
+            return [];
         });
 }

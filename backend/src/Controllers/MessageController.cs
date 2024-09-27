@@ -17,14 +17,73 @@ namespace backend.Controllers
             _context = context;
         }
 
-        
-        [HttpPost]
-        public async Task<ActionResult<Message>> CreateMessage(Message message)
+        public class MessageCreation
         {
-            _context.Message.Add(message);
-            await _context.SaveChangesAsync();
+            public string content { get; set; } = String.Empty;
+            public string senderName { get; set; } = String.Empty;
+            public string receiverName { get; set; } = String.Empty;
+            public string teamName { get; set; } = String.Empty;
+        }
+        [HttpPost]
+        public async Task<ActionResult<Message>> CreateMessage([FromBody] MessageCreation message)
+        {
+            if (message == null)
+            {
+                return BadRequest("Message cannot be null.");
+            }
 
-            return Ok(message);
+            if (string.IsNullOrWhiteSpace(message.content))
+            {
+                return BadRequest("Message content cannot be empty.");
+            }
+
+            if (string.IsNullOrWhiteSpace(message.senderName))
+            {
+                return BadRequest("Sender name cannot be empty.");
+            }
+
+            if (string.IsNullOrWhiteSpace(message.receiverName))
+            {
+                return BadRequest("Receiver name cannot be empty.");
+            }
+
+            if (string.IsNullOrWhiteSpace(message.teamName))
+            {
+                return BadRequest("Team name cannot be empty.");
+            }
+
+            var sender = await _context.User
+                .FirstOrDefaultAsync(u => u.Name == message.senderName);
+            if (sender == null)
+            {
+                return NotFound("Sender not found.");
+            }
+
+            var receiver = await _context.User
+                .FirstOrDefaultAsync(u => u.Name == message.receiverName);
+            if (receiver == null)
+            {
+                return NotFound("Receiver not found.");
+            }
+
+            var team = await _context.Team
+                .FirstOrDefaultAsync(t => t.Name == message.teamName);
+            if (team == null)
+            {
+                return NotFound("Team not found.");
+            }
+
+            var newMessage = new Message
+            {
+                Content = message.content,
+                SenderId = sender.Id,
+                ReceiverId = receiver.Id,
+                TeamId = team.Id
+            };
+
+            _context.Message.Add(newMessage);
+            await _context.SaveChangesAsync();
+            return Ok("Message sent successfully.");
         }
 
         [HttpGet("{userId}")]

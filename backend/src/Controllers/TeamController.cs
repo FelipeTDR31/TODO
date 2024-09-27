@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using backend.Data;
 using backend.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -37,9 +39,16 @@ namespace backend.Controllers
                 Description = team.Description,
                 OwnerId = ownerId
             };
+
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.Preserve
+            };
+
+            var json = JsonSerializer.Serialize(newTeam, options);
             _context.Team.Add(newTeam);
             await _context.SaveChangesAsync();
-            return Ok(newTeam);
+            return Ok(json);
         }
 
         [HttpGet("{id}/ownedteams")]

@@ -8,13 +8,13 @@ export interface Message {
     teamId: number;
 }
 
-export const createMessage = async (content: string, receiverId: number, senderId: number, teamId: number) => {
+export const createMessage = async (content: string, receiverName: string, senderName: string, teamName: string) => {
     return axios
         .post(`http://localhost:5002/api/Message`, {
             content,
-            receiverId,
-            senderId,
-            teamId
+            receiverName,
+            senderName,
+            teamName
         }, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,

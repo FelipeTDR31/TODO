@@ -146,6 +146,25 @@ namespace backend.Controllers
             return Ok(new { newUser, token });
         }
 
+        [HttpPost("/names")]
+        public async Task<ActionResult<IEnumerable<string>>> GetUserNames(User user)
+        {
+            if (string.IsNullOrEmpty(user.Name))
+            {
+                return BadRequest("Name is required");
+            }
+
+            var users = await _context.User.Where(u => u.Name.Contains(user.Name)).ToListAsync();
+            if (users == null)
+            {
+                return NotFound();
+            }
+
+            var userNames = users.Select(u => u.Name);
+
+            return Ok(userNames);
+        }
+
         private bool UserExists(int id)
         {
             return _context.User.Any(e => e.Id == id);

@@ -8,11 +8,11 @@ import SunImg from "@/utils/images/sun.png";
 import MoonImg from "@/utils/images/moon.png";
 import HideImg from "@/utils/images/hide.png";
 import SeeImg from "@/utils/images/see.png";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, useContext, useEffect, useRef, useState } from "react";
 import Column from "@/components/Column";
 import { Input } from "@/utils/Tags/Input";
 import { useRouter } from "next/navigation";
-import { deleteUser, getUser, updateUser } from "@/utils/requests/User";
+import { deleteUser, getUser, getUserNames, updateUser } from "@/utils/requests/User";
 import { deleteTable, getTables, updateTable } from "@/utils/requests/Table";
 import { createColumn, deleteColumn, getColumns } from "@/utils/requests/Column";
 import { Subtask } from "@/utils/requests/Subtask";
@@ -25,6 +25,8 @@ import { createRoot, hydrateRoot } from "react-dom/client";
 import { ModeContext } from "@/components/Context";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { createTeam, Team } from "@/utils/requests/Team";
+import { createMessage } from "@/utils/requests/Message";
 
 export default function UserPage({ params }: { params: { user: string } }) {
     const context = useContext(ModeContext);
@@ -47,6 +49,10 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const [showUpdateBoardModal, setShowUpdateBoardModal] = useState(false);
     const [showDeleteColumnModal, setShowDeleteColumnModal] = useState(false);
     const [selectedColumnId, setSelectedColumnId] = useState<string>("");
+    const [teams, setTeams] = useState<Team[]>([]);
+    const [userNames, setUserNames] = useState<string[]>([]);
+    const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
+    const [showTeamCreation, setShowTeamCreation] = useState(false);
     let isFirstRender = true;
     const router = useRouter();
     const hasMounted = useRef(false);
@@ -59,7 +65,11 @@ export default function UserPage({ params }: { params: { user: string } }) {
 
       async function fetchUser() {
           const user = await getUser(params.user);
-          setUser(user);
+          if (user) {
+            setUser(user);
+          }else{
+            router.push("/login");
+          }
       }
 
       async function fetchBoards(userID : number) {
@@ -524,6 +534,26 @@ export default function UserPage({ params }: { params: { user: string } }) {
     })
   }
 
+  
+  async function searchUsers(e : ChangeEvent<HTMLInputElement>) {
+    const query = e.target.value
+    const userNameMatch = await getUserNames(query);
+    setUserNames(userNameMatch);
+  }
+
+  async function CreateTeam() {
+    const teamName = document.getElementById("teamName") as HTMLInputElement;
+    const teamDescription = document.getElementById("teamDescription") as HTMLInputElement;
+    createTeam(teamName.value, teamDescription.value, user!.id)
+    .then(() => {
+      for (let i = 0; i < invitedUsers.length; i++) {
+        const invitedUser = invitedUsers[i];
+        createMessage(`${user?.name} invited you to ${teamName.value}`, invitedUser, user!.name, teamName.value);
+      }
+    })
+    
+  }
+  
     return (
         <Box className="kanban-template">
             {/* Sidebar Drawer */}
@@ -566,6 +596,27 @@ export default function UserPage({ params }: { params: { user: string } }) {
                           }
                       </Box>
                       <button className="create-board text-lg py-2 pl-7 -ml-7 hover:opacity-90" onClick={() => {setShowBoardCreation(true)}}>+Create New Board</button>
+                    </Box>
+                </Box>
+                <Box className="flex flex-col h-1/2">
+                    <h4 className="text-gray-400 text-sm">Teams {`(${teams.length})`}</h4>
+                    <Box className="flex flex-col h-4/5 mt-2">
+                      <Box className={`flex flex-col-reverse gap-2 p-3 overflow-auto min-h-1/4 max-h-full rounded-md ${context!.mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`} id="teamBoards">
+                          {
+                              teams.map((team, index) => {
+                                if (team.ownerId === user!.id) {
+                                  return(
+                                    <button id={team.id.toString()} key={index} className={`chosen-board text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{team.name}</button>
+                                  )
+                                }else{
+                                  return(
+                                    <button id={team.id.toString()} key={index} className={`text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{team.name}</button>
+                                  )
+                                }
+                              })
+                          }
+                      </Box>
+                      <button className="create-board text-lg py-2 pl-7 -ml-7 hover:opacity-90" onClick={() => {setShowTeamCreation(true)}}>+Create A Team</button>
                     </Box>
                 </Box>
                 <Box>
@@ -837,6 +888,68 @@ export default function UserPage({ params }: { params: { user: string } }) {
                 <h1>Are you sure you want to delete your account?</h1>
                 <button className="bg-button font-bold text-base p-2 rounded-3xl w-full" id="deleteAccount" onClick={() => DeleteUser()}>Yes</button>
                 <button className="text-[rgba(255,0,0,0.8)] border border-[rgba(255,0,0,0.8)] hover:opacity-70 font-bold text-base p-2 rounded-3xl w-full" onClick={() => setShowDeleteAccountModal(false)}>No</button>
+              </Box>
+            </Modal>
+
+            <Modal
+              open={showTeamCreation}
+              onClose={() => setShowTeamCreation(false)}
+              keepMounted
+            >
+              <Box className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 rounded-md ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+                  <h1 className={`text-3xl font-bold ${context!.mode === "dark" ? "text-white" : "text-black"}`}>Create a New Team</h1>
+                  <Input placeholder="Team Name" type="text" id="teamName" name="teamName" />
+                  <Box className="flex flex-col gap-2 w-5/6">
+                    <label htmlFor="description" className={`font-semibold text-sm ${context!.mode === "dark" ? "text-white" : "text-black"}`}>Description</label>
+                    <Textarea 
+                    placeholder="This is the description of the team" name="description" id="teamDescription" rows={4} 
+                    sx={{
+                      "& .MuiInputBase-input": {
+                        color: "gray",
+                        fontWeight: "600",
+                        backgroundColor: "rgba(255, 255, 255, 0.05)",
+                        padding: "0.5rem",
+                        fontSize: "0.9rem",
+                      },
+                      "& .MuiInput-underline:before": {
+                          borderBottomColor: "gray",
+                      },
+                      "& .MuiInput-underline:after": {
+                          borderBottomColor: "gray",
+                      },
+                    }} />
+                  </Box>
+                  <Box>
+                    <Input type="search" placeholder="Search Users to Invite" onChange={searchUsers} name="searchUsers" id="searchUsers" />
+                    <Box id="searchResultsBox">
+                      <h1 className={`text-2xl font-bold ${context!.mode === "dark" ? "text-white" : "text-black"}`}>Results</h1>
+                      {
+                        userNames.map((userName, key) => {
+                          if (userName !== user!.name && invitedUsers.includes(userName) === false) {
+                            return(
+                              <Box key={key} className={`flex items-center gap-2 ${context!.mode === "dark" ? "text-white" : "text-black"}`}>
+                                <span className={`text-xl font-bold ${context!.mode === "dark" ? "text-white" : "text-black"}`}>{userName}</span>
+                                <span className="flex items-center justify-center rounded-full bg-blue-500 text-white py-1 px-2 cursor-pointer hover:bg-blue-600" onClick={() => {setInvitedUsers([...invitedUsers, userName]); setUserNames([...userNames.filter((name) => name !== userName)])}}>+</span>
+                              </Box>
+                            )
+                          }
+                        })
+                      }
+                    </Box>
+                    <Box id="invitedUsersBox">
+                      <h1 className={`text-2xl font-bold ${context!.mode === "dark" ? "text-white" : "text-black"}`}>Invited Users</h1>
+                      {
+                        invitedUsers.map((invitedUserName, key) => {
+                          return (
+                            <Box key={key} className={`flex items-center gap-2 ${context!.mode === "dark" ? "text-white" : "text-black"}`}>
+                              <span className={`text-xl font-bold ${context!.mode === "dark" ? "text-white" : "text-black"} invitedUser`}>{invitedUserName}</span>
+                            </Box>
+                          )
+                        })
+                      }
+                    </Box>
+                  </Box>
+                  <button className="bg-button font-bold text-base p-2 rounded-3xl w-full" id="createTeam" onClick={() => CreateTeam()}>Create</button>
               </Box>
             </Modal>
         </Box>
