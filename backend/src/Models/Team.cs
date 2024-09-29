@@ -9,5 +9,7 @@ namespace backend.Models
         public virtual User? Owner { get; set; }
         public ICollection<User>? Users { get; set; }
         public ICollection<Table>? Tables { get; set; }
+
+        public string UniqueName => $"{Name.ToLower()}-{Id}";
     }
 }

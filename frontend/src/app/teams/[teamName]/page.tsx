@@ -26,7 +26,7 @@ import { ModeContext } from "@/components/Context";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
-export default function UserPage({ params }: { params: { user: string } }) {
+export default function TeamPage({ params }: { params: { user: string } }) {
     const context = useContext(ModeContext);
     const [showAddNewTask, setShowAddNewTask] = useState(false);
     const [user, setUser] = useState<User | null>(null);

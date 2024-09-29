@@ -96,7 +96,22 @@ namespace backend.Controllers
                 .Include(m => m.Team)
                 .ToListAsync();
 
-            return messages;
+            if (!messages.Any())
+            {
+                return NotFound();
+            }
+
+            var result = messages
+                .Where(m => m.SenderId == userId || m.ReceiverId == userId)
+                .Select(m => new
+                {
+                    content = m.Content,
+                    senderName = m.Sender!.Name,
+                    receiverName = m.Receiver!.Name,
+                    teamName = m.Team!.Name
+                });
+
+            return Ok(result);
         }
 
         [HttpDelete("{id}")]

@@ -8,6 +8,7 @@ import SunImg from "@/utils/images/sun.png";
 import MoonImg from "@/utils/images/moon.png";
 import HideImg from "@/utils/images/hide.png";
 import SeeImg from "@/utils/images/see.png";
+import OwnerImg from "@/utils/images/key.png";
 import React, { ChangeEvent, useContext, useEffect, useRef, useState } from "react";
 import Column from "@/components/Column";
 import { Input } from "@/utils/Tags/Input";
@@ -25,8 +26,8 @@ import { createRoot, hydrateRoot } from "react-dom/client";
 import { ModeContext } from "@/components/Context";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import { createTeam, Team } from "@/utils/requests/Team";
-import { createMessage } from "@/utils/requests/Message";
+import { createTeam, getTeams, Team } from "@/utils/requests/Team";
+import { createMessage, getUserMessages, Message } from "@/utils/requests/Message";
 
 export default function UserPage({ params }: { params: { user: string } }) {
     const context = useContext(ModeContext);
@@ -49,7 +50,9 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const [showUpdateBoardModal, setShowUpdateBoardModal] = useState(false);
     const [showDeleteColumnModal, setShowDeleteColumnModal] = useState(false);
     const [selectedColumnId, setSelectedColumnId] = useState<string>("");
-    const [teams, setTeams] = useState<Team[]>([]);
+    const [teams, setTeams] = useState<{name: string, isOwner: boolean}[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [showMessages, setShowMessages] = useState(false);
     const [userNames, setUserNames] = useState<string[]>([]);
     const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
     const [showTeamCreation, setShowTeamCreation] = useState(false);
@@ -72,6 +75,17 @@ export default function UserPage({ params }: { params: { user: string } }) {
           }
       }
 
+      async function fetchMessages(userID : number) {
+        const messages = await getUserMessages(userID);
+        setMessages(messages);
+      }
+
+      async function fetchTeams(userID : number) {
+        const teams = await getTeams(userID);
+        console.log(teams);
+        setTeams(teams);
+      }
+
       async function fetchBoards(userID : number) {
           const boards = await getTables(userID);
           setSelectedTable(boards[boards.length - 1]);
@@ -87,7 +101,9 @@ export default function UserPage({ params }: { params: { user: string } }) {
       if (!hasMounted.current) {
         fetchUser();
         if (user!=null) {
+            fetchMessages(user.id);
             fetchBoards(user.id);
+            fetchTeams(user.id);
             hasMounted.current = true;
         }
         
@@ -545,13 +561,18 @@ export default function UserPage({ params }: { params: { user: string } }) {
     const teamName = document.getElementById("teamName") as HTMLInputElement;
     const teamDescription = document.getElementById("teamDescription") as HTMLInputElement;
     createTeam(teamName.value, teamDescription.value, user!.id)
-    .then(() => {
+    .then(async () => {
       for (let i = 0; i < invitedUsers.length; i++) {
         const invitedUser = invitedUsers[i];
         createMessage(`${user?.name} invited you to ${teamName.value}`, invitedUser, user!.name, teamName.value);
       }
+
+      const messages = await getUserMessages(user!.id);
+      setMessages(messages);
+      setTeams(await getTeams(user!.id));
     })
-    
+    setInvitedUsers([]);
+    setShowTeamCreation(false);
   }
   
     return (
@@ -572,6 +593,7 @@ export default function UserPage({ params }: { params: { user: string } }) {
                         anchorEl={document.querySelector(".userOptions")}
                       >
                         <MenuItem onClick={() => {setShowUserAccountInfo(true);setShowUserOptions(false)}} style={{color: "#645FC7", fontWeight: "600", padding: "0.5rem"}}>Manage Account</MenuItem>
+                        <MenuItem onClick={() => {setShowMessages(true);setShowUserOptions(false)}} style={{color: "#645FC7", fontWeight: "600", padding: "0.5rem"}}>Messages</MenuItem>
                         <MenuItem onClick={() => {setShowUserOptions(false); localStorage.removeItem("token"); router.push("/login")}} style={{color: "#645FC7", fontWeight: "600", padding: "0.5rem"}}>LogOut</MenuItem>
                       </Menu>
                 </Box>
@@ -603,17 +625,20 @@ export default function UserPage({ params }: { params: { user: string } }) {
                     <Box className="flex flex-col h-4/5 mt-2">
                       <Box className={`flex flex-col-reverse gap-2 p-3 overflow-auto min-h-1/4 max-h-full rounded-md ${context!.mode === "dark" ? "bg-primary-dark" : "bg-primary-light"}`} id="teamBoards">
                           {
-                              teams.map((team, index) => {
-                                if (team.ownerId === user!.id) {
-                                  return(
-                                    <button id={team.id.toString()} key={index} className={`chosen-board text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{team.name}</button>
-                                  )
-                                }else{
-                                  return(
-                                    <button id={team.id.toString()} key={index} className={`text-sm rounded-3xl px-3 py-2 hover:opacity-90 ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>{team.name}</button>
-                                  )
-                                }
-                              })
+                              teams.length != 0 ?
+                                teams.map((team, index) => {
+                                  if (team.isOwner) {
+                                    return(
+                                      <button id={team.name} key={index} className={`flex items-center justify-center gap-3 text-xl rounded-3xl px-3 py-2 hover:opacity-90 ${context!.mode === "dark" ? "bg-secondary-dark text-white" : "bg-secondary-light text-black"}`}>{team.name} <Image src={OwnerImg} alt="owner" width={25} height={25} className={`rounded-full p-1 ${context!.mode === "dark" ? "bg-secondary-light" : "bg-secondary-dark"}`} /></button>
+                                    )
+                                  }else{
+                                    return(
+                                      <button id={team.name} key={index} className={`flex items-center justify-center gap-3 text-xl rounded-3xl px-3 py-2 hover:opacity-90 ${context!.mode === "dark" ? "bg-secondary-dark text-white" : "bg-secondary-light text-black"}`}>{team.name}</button>
+                                    )
+                                  }
+                                })
+                              :
+                                <div className={`text-lg rounded-3xl px-3 py-2 ${context!.mode === "dark" ? "text-white" : "text-black"}`}>You are not part of any team</div>
                           }
                       </Box>
                       <button className="create-board text-lg py-2 pl-7 -ml-7 hover:opacity-90" onClick={() => {setShowTeamCreation(true)}}>+Create A Team</button>
@@ -950,6 +975,52 @@ export default function UserPage({ params }: { params: { user: string } }) {
                     </Box>
                   </Box>
                   <button className="bg-button font-bold text-base p-2 rounded-3xl w-full" id="createTeam" onClick={() => CreateTeam()}>Create</button>
+              </Box>
+            </Modal>
+
+            <Modal
+              open={showMessages}
+              onClose={() => setShowMessages(false)}
+              keepMounted
+            >
+              <Box className={`flex flex-col items-center font-semibold p-5 gap-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 rounded-md ${context!.mode === "dark" ? "bg-secondary-dark" : "bg-secondary-light"}`}>
+                <h1 className={`text-3xl font-bold ${context!.mode === "dark" ? "text-white" : "text-black"}`}>Messages</h1>
+                {
+                  messages.length != 0 ?
+                    <Box className="flex flex-col gap-2 w-5/6">
+                      <Box>
+                        <h3>Received Messages</h3>
+                            {
+                              messages.map((message, key) => {
+                                if (message.senderName !== user!.name) {
+                                  return (
+                                  <Box key={key} className={`flex items-center gap-2 ${context!.mode === "dark" ? "text-white" : "text-black"}`}>
+                                    <span className={`text-xl font-bold ${context!.mode === "dark" ? "text-white" : "text-black"}`}>{message.content} - {message.senderName}</span>
+                                  </Box>
+                                )
+                                }
+                              })
+                            }
+                      </Box>
+
+                      <Box>
+                        <h3>Sent Messages</h3>
+                            {
+                              messages.map((message, key) => {
+                                if (message.senderName === user!.name) {
+                                  return (
+                                  <Box key={key} className={`flex items-center gap-2 ${context!.mode === "dark" ? "text-white" : "text-black"}`}>
+                                    <span className={`text-xl font-bold ${context!.mode === "dark" ? "text-white" : "text-black"}`}>{message.content} - Sent to {message.receiverName}</span>
+                                  </Box>
+                                )
+                                }
+                              })
+                            }
+                      </Box>
+                    </Box>
+                  :
+                  <h1 className={`text-3xl font-bold ${context!.mode === "dark" ? "text-white" : "text-black"}`}>No Messages Sent or Received</h1>
+                }
               </Box>
             </Modal>
         </Box>

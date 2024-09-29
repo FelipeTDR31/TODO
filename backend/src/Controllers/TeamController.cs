@@ -50,47 +50,30 @@ namespace backend.Controllers
             await _context.SaveChangesAsync();
             return Ok(json);
         }
-
-        [HttpGet("{id}/ownedteams")]
-        public async Task<ActionResult<IEnumerable<Team>>> GetTeamsOwnedByUser(int id)
+        
+        [HttpGet("{userId}/teams")]
+        public async Task<ActionResult<IEnumerable<(string, bool)>>> GetUserTeams(int userId)
         {
-            var user = await _context.User
-                .Include(u => u.OwnedTeams)
-                .FirstOrDefaultAsync(u => u.Id == id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            return user.OwnedTeams!.ToList();
+           var teams = await _context.Team
+            .Where(t => t.OwnerId == userId || t.Users!.Any(u => u.Id == userId))
+            .Select(t => new {t.Name, IsOwner = t.OwnerId == userId})
+            .ToListAsync();
+            return Ok(teams);
         }
 
         
-        [HttpGet("{id}/teams")]
-        public async Task<ActionResult<IEnumerable<Team>>> GetTeamsOfUser(int id)
-        {
-            var user = await _context.User
-                .Include(u => u.Teams)
-                .FirstOrDefaultAsync(u => u.Id == id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            return user.Teams!.ToList();
-        }
-
-        
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Team>> GetTeam(int id)
+        [HttpGet("{uniqueName}")]
+        public async Task<ActionResult<Team>> GetTeam(string uniqueName)
         {
             var team = await _context.Team
                 .Include(t => t.Users)
                 .Include(t => t.Owner)
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .FirstOrDefaultAsync(t => t.UniqueName == uniqueName);
             if (team == null)
             {
                 return NotFound();
             }
-            return team;
+            return Ok(team);
         }
 
         [HttpPut("{id}")]

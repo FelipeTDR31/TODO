@@ -6,6 +6,9 @@ export interface Message {
     receiverId: number;
     senderId: number;
     teamId: number;
+    receiverName: string;
+    senderName: string;
+    teamName: string;
 }
 
 export const createMessage = async (content: string, receiverName: string, senderName: string, teamName: string) => {
@@ -34,6 +37,9 @@ export const getUserMessages = async (userId: number) => {
         })
         .then((response) => {
             return response.data;
+        })
+        .catch((error) => {
+            return [];
         });
 }
 

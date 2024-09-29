@@ -37,7 +37,7 @@ namespace backend.Migrations
                     b.Property<int?>("TeamId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -225,15 +225,15 @@ namespace backend.Migrations
 
             modelBuilder.Entity("Table", b =>
                 {
-                    b.HasOne("backend.Models.Team", null)
+                    b.HasOne("backend.Models.Team", "Team")
                         .WithMany("Tables")
                         .HasForeignKey("TeamId");
 
                     b.HasOne("backend.Models.User", "User")
                         .WithMany("Tables")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Team");
 
                     b.Navigation("User");
                 });
